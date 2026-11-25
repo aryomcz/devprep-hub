@@ -125,18 +125,18 @@ feat(auth): implement next 16 proxy, single-user email gate, and dashboard shell
 - `src/app/(dashboard)/skills/page.tsx` *(baru)*
 
 ### Tugas
-- [ ] Bangun `src/lib/skill-normalizer.ts` dengan TDD (`skill-normalizer.test.ts`): tangani simbol khusus lebih dulu (`c++ → cpp`, `c# → csharp`, `.net → dotnet`, `f# → fsharp`), normalisasi spasi/titik (`Next.js` / `NextJS` → `nextjs`), serta kamus alias terkurasi (`postgres → postgresql`, `js → javascript`, `ts → typescript`, `k8s → kubernetes`, dll.) menghasilkan `{ canonicalName, slug }`.
-- [ ] Bangun `src/lib/mastery.ts` dengan TDD (`mastery.test.ts`):
+- [x] Bangun `src/lib/skill-normalizer.ts` dengan TDD (`skill-normalizer.test.ts`): tangani simbol khusus lebih dulu (`c++ → cpp`, `c# → csharp`, `.net → dotnet`, `f# → fsharp`), normalisasi spasi/titik (`Next.js` / `NextJS` → `nextjs`), serta kamus alias terkurasi (`postgres → postgresql`, `js → javascript`, `ts → typescript`, `k8s → kubernetes`, dll.) menghasilkan `{ canonicalName, slug }`.
+- [x] Bangun `src/lib/mastery.ts` dengan TDD (`mastery.test.ts`):
   - `deriveSkillStatus(score)` (`0–29 gap`, `30–79 learning`, `80–100 mastered`).
   - `calculateMasteryBreakdown({ source, quizScores, labPassed, labSubmitted, latestConfidence })`: bobot dasar `Quiz 30 / Lab 40 / Interview 30`, *baseline* `40` (`github`) vs `0` (`jd`/`manual`), *cap* `65` jika baru 1 sinyal aktif (`max(40, skor)` untuk GitHub), renormalisasi ke `100%` jika ≥2 sinyal aktif, dan pengembalian objek rincian `{ score, status, breakdown: { quiz, lab, interview }, capped }`.
   - `calculateReadinessMeter(items)` dengan bobot `must_have = 2 : nice_to_have = 1`.
-- [ ] Buat `src/actions/skills.ts` (lapisan `actions`: cek sesi via `requireAllowedUser`, normalisasi via `skill-normalizer.ts`, CRUD manual, *override* skor manual `mastery_score`, dan `mergeSkillsAction` yang memanggil PostgreSQL RPC `merge_skills` lalu `revalidatePath('/skills')`).
-- [ ] Bangun UI `/skills` dengan `SkillTable.tsx` (filter kategori/status, badge status, tooltip rincian Q/L/I & status *cap*, form tambah/edit manual, *override* skor) dan `MergeSkillDialog.tsx` untuk menggabungkan 2 skill duplikat.
+- [x] Buat `src/actions/skills.ts` (lapisan `actions`: cek sesi via `requireAllowedUser`, normalisasi via `skill-normalizer.ts`, CRUD manual, *override* skor manual `mastery_score`, dan `mergeSkillsAction` yang memanggil PostgreSQL RPC `merge_skills` lalu `revalidatePath('/skills')`).
+- [x] Bangun UI `/skills` dengan `SkillTable.tsx` (filter kategori/status, badge status, tooltip rincian Q/L/I & status *cap*, form tambah/edit manual, *override* skor) dan `MergeSkillDialog.tsx` untuk menggabungkan 2 skill duplikat.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (seluruh tabel kasus `skill-normalizer.test.ts` & `mastery.test.ts` hijau).
-- [ ] `npm run build` lulus.
-- [ ] Cek batas modul: `src/lib/skill-normalizer.ts` dan `src/lib/mastery.ts` tidak mengimpor modul Next.js, Supabase, atau UI.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (seluruh tabel kasus `skill-normalizer.test.ts` & `mastery.test.ts` hijau).
+- [x] `npm run build` lulus.
+- [x] Cek batas modul: `src/lib/skill-normalizer.ts` dan `src/lib/mastery.ts` tidak mengimpor modul Next.js, Supabase, atau UI.
 
 ### Saran Conventional Commit
 ```text
@@ -178,3 +178,4 @@ feat(github): add github repository sync service and route handler
 
 - **2026-11-25 — Step 1.1 (Selesai & Di-commit):** Migrasi SQL `supabase/migrations/0001_initial_schema_and_rls.sql` (14 enum, 13 tabel, RLS penuh, trigger `profiles`, RPC `save_internship_analysis` & `merge_skills`), kontrak TypeScript `src/types/database.ts`, kontrak Zod `src/types/schemas.ts`, unit test `src/types/__tests__/schemas.test.ts` (5/5 lulus), `vitest.config.ts`, dan `.env.example` (diperbarui ke `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` & `SUPABASE_SECRET_KEY`). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
 - **2026-11-25 — Step 1.2 (Selesai & Di-commit):** Modul `src/lib/auth-guard.ts` + test (5/5 lulus), klien Supabase SSR/admin, `src/proxy.ts` Next.js 16, halaman `/login` tanpa registrasi publik, dan shell `(dashboard)` berbasis `<Suspense>` (`cacheComponents: true`). Lulus `tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`, serta uji login lokal.
+- **2026-11-25 — Step 1.3 (Selesai & Di-commit):** Modul murni `src/lib/skill-normalizer.ts` + test (4/4), `src/lib/mastery.ts` + test (20/20), `src/actions/skills.ts` (CRUD, override skor, RPC `merge_skills`), `SkillTable.tsx`, `MergeSkillDialog.tsx`, `/skills`, plus migrasi `0002_backfill_profiles.sql` & `upsert` profil di layout. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (34/34), `npm run build`, dan uji CRUD/Merge/Normalisasi di `/skills`.

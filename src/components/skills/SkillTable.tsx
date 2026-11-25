@@ -1,6 +1,7 @@
 "use client";
 
-import { Info, Pencil, Plus, Trash2 } from "lucide-react";
+import { Info, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import {
   createSkillAction,
@@ -81,12 +82,33 @@ function formatSignal(value: number | null): string {
   return value === null ? "—" : `${value}%`;
 }
 
-export function SkillTable({ skills }: { skills: SkillRow[] }) {
+function formatSyncTime(iso: string | null): string | null {
+  if (!iso) return null;
+  return `${iso.slice(0, 16).replace("T", " ")} UTC`;
+}
+
+export function SkillTable({
+  skills,
+  initialGithubUsername,
+  lastGithubSync,
+}: {
+  skills: SkillRow[];
+  initialGithubUsername: string;
+  lastGithubSync: string | null;
+}) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // GitHub Sync state
+  const [githubUsername, setGithubUsername] = useState(initialGithubUsername);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(lastGithubSync);
 
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
@@ -192,9 +214,99 @@ export function SkillTable({ skills }: { skills: SkillRow[] }) {
     });
   }
 
+  async function handleGithubSync(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSyncing(true);
+    setSyncError(null);
+    setSyncMessage(null);
+
+    try {
+      const res = await fetch("/api/github/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ githubUsername: githubUsername.trim() }),
+      });
+
+      const payload = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        scannedRepos?: number;
+        addedCount?: number;
+        upgradedCount?: number;
+        lastGithubSync?: string;
+      };
+
+      if (!res.ok) {
+        setSyncError(payload.error ?? "Gagal melakukan Sync GitHub.");
+        return;
+      }
+
+      if (payload.lastGithubSync) {
+        setLastSyncAt(payload.lastGithubSync);
+      }
+      setSyncMessage(
+        `Dipindai ${payload.scannedRepos ?? 0} repo · +${payload.addedCount ?? 0} skill baru, ${payload.upgradedCount ?? 0} dinaikkan ke baseline 40%.`,
+      );
+      router.refresh();
+    } catch {
+      setSyncError("Terjadi gangguan jaringan saat menghubungi server.");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  const formattedSyncTime = formatSyncTime(lastSyncAt);
+
   return (
     <TooltipProvider>
       <div className="space-y-4">
+        <Card size="sm">
+          <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium">Sinkronisasi GitHub</div>
+              <p className="text-xs text-muted-foreground">
+                Pindai maks. 20 repo publik non-fork terbaru (baseline 40%).
+                {formattedSyncTime
+                  ? ` Terakhir sync: ${formattedSyncTime}`
+                  : ""}
+              </p>
+              {syncMessage ? (
+                <p className="text-xs text-foreground">{syncMessage}</p>
+              ) : null}
+              {syncError ? (
+                <p role="alert" className="text-xs text-destructive">
+                  {syncError}
+                </p>
+              ) : null}
+            </div>
+
+            <form
+              onSubmit={handleGithubSync}
+              className="flex items-center gap-2"
+            >
+              <Input
+                value={githubUsername}
+                onChange={(event) => setGithubUsername(event.target.value)}
+                placeholder="GitHub username..."
+                className="w-44"
+                required
+                disabled={syncing}
+              />
+              <Button
+                type="submit"
+                size="sm"
+                variant="outline"
+                disabled={syncing || !githubUsername.trim()}
+                className="gap-1.5"
+              >
+                <RefreshCw
+                  className={syncing ? "size-3.5 animate-spin" : "size-3.5"}
+                />
+                <span>{syncing ? "Syncing..." : "Sync GitHub"}</span>
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-wrap items-center gap-2">
             <Input

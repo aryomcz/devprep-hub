@@ -20,30 +20,36 @@ async function SkillsContent() {
 
   const supabase = await createClient();
 
-  const [skillsRes, quizzesRes, labsRes, interviewsRes] = await Promise.all([
-    supabase
-      .from("skills")
-      .select(
-        "id, name, slug, category, status, mastery_score, source, updated_at",
-      )
-      .eq("user_id", user.id)
-      .order("mastery_score", { ascending: false })
-      .order("name", { ascending: true }),
-    supabase
-      .from("quiz_attempts")
-      .select("skill_id, score")
-      .eq("user_id", user.id)
-      .order("attempted_at", { ascending: false }),
-    supabase
-      .from("lab_submissions")
-      .select("passed, track_modules(skill_id)")
-      .eq("user_id", user.id),
-    supabase
-      .from("interview_attempts")
-      .select("skill_id, confidence_level")
-      .eq("user_id", user.id)
-      .order("attempted_at", { ascending: false }),
-  ]);
+  const [skillsRes, quizzesRes, labsRes, interviewsRes, profileRes] =
+    await Promise.all([
+      supabase
+        .from("skills")
+        .select(
+          "id, name, slug, category, status, mastery_score, source, updated_at",
+        )
+        .eq("user_id", user.id)
+        .order("mastery_score", { ascending: false })
+        .order("name", { ascending: true }),
+      supabase
+        .from("quiz_attempts")
+        .select("skill_id, score")
+        .eq("user_id", user.id)
+        .order("attempted_at", { ascending: false }),
+      supabase
+        .from("lab_submissions")
+        .select("passed, track_modules(skill_id)")
+        .eq("user_id", user.id),
+      supabase
+        .from("interview_attempts")
+        .select("skill_id, confidence_level")
+        .eq("user_id", user.id)
+        .order("attempted_at", { ascending: false }),
+      supabase
+        .from("profiles")
+        .select("github_username, last_github_sync")
+        .eq("id", user.id)
+        .maybeSingle(),
+    ]);
 
   const quizMap = new Map<string, number[]>();
   for (const row of quizzesRes.data ?? []) {
@@ -95,7 +101,13 @@ async function SkillsContent() {
     };
   });
 
-  return <SkillTable skills={rows} />;
+  return (
+    <SkillTable
+      skills={rows}
+      initialGithubUsername={profileRes.data?.github_username ?? ""}
+      lastGithubSync={profileRes.data?.last_github_sync ?? null}
+    />
+  );
 }
 
 export default function SkillsPage() {
