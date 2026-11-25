@@ -41,7 +41,7 @@ Dokumen ini mencatat keputusan teknis dan arsitektur penting agar setiap sesi pe
 - **Tanggal & Status:** 2026-11-25 | `Accepted`
 - **Konteks:** Prisma secara default melewati RLS Supabase, menambah beban *cold start* serta konfigurasi PgBouncer di Vercel Hobby, dan memecah *source of truth* migrasi SQL.
 - **Keputusan:** Menggunakan `@supabase/supabase-js` + `@supabase/ssr` dengan RLS aktif di seluruh tabel, migrasi SQL terversi di `supabase/migrations/*.sql`, *generated TypeScript types*, validasi Zod untuk kolom `JSONB`, dan PostgreSQL RPC untuk mutasi atomik lintas tabel.
-- **Konsekuensi:** Hapus rencana direktori `prisma/`; hanya `/api/cron/daily-digest` yang diizinkan memakai `SUPABASE_SERVICE_ROLE_KEY`, sementara operasi multi-tabel atomik ditulis sebagai fungsi SQL RPC.
+- **Konsekuensi:** Hapus rencana direktori `prisma/`; klien publik/SSR memakai `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, hanya `/api/cron/daily-digest` yang diizinkan memakai `SUPABASE_SECRET_KEY`, sementara operasi multi-tabel atomik ditulis sebagai fungsi SQL RPC.
 
 ### ADR-006: Pipeline AI 2-Tahap (*Decoupled & On-Demand*) Anti-Timeout & Hemat Kuota
 - **Tanggal & Status:** 2026-11-25 | `Accepted`

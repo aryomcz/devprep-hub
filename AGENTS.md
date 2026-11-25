@@ -48,7 +48,7 @@ Log Decisions: Catat setiap perubahan atau keputusan arsitektur penting ke docs/
 
 Zero Hardcoded Secrets: Jangan pernah menulis API key, token, atau URL rahasia di dalam kode maupun file dokumentasi.
 
-Server-Only Boundaries: Variabel GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY, GITHUB_TOKEN, dan CRON_SECRET hanya boleh diakses di sisi server (Route Handlers, Server Actions, atau src/services/). Dilarang memanggil LLM atau Public API ber-token langsung dari Client Components.
+Server-Only Boundaries: Variabel GEMINI_API_KEY, SUPABASE_SECRET_KEY, GITHUB_TOKEN, dan CRON_SECRET hanya boleh diakses di sisi server (Route Handlers, Server Actions, atau src/services/). Dilarang memanggil LLM atau Public API ber-token langsung dari Client Components.
 
 Env Sync: Setiap kali menambah variabel lingkungan baru, wajib daftarkan namanya (dengan nilai kosong) di .env.example.
 

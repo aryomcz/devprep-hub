@@ -23,7 +23,7 @@ UI (src/app/(dashboard)/**, src/components/**)
 | :--- | :--- | :--- | :--- |
 | **`src/lib/`** | Modul komputasi murni *in-process* (`skill-normalizer`, `mastery`, `cloze-parser`, `spaced-repetition`, `diff-sanitizer`, `todays-focus`, `utils` (`cn`)) + *factory* tipis (`supabase`, `gemini`, `auth-guard`). | I/O HTTP eksternal langsung pada modul domain murni, `next/cache` (`revalidatePath`), atau komponen UI React. | Direct unit test tanpa mock (atau pure arg injection). |
 | **`src/services/`** | *Deep modules* orkestrasi panggilan Gemini (`ai/`) & Public API (`external/`), timeout 4 detik, validasi Zod, serta penyaringan payload. | `NextRequest`, `NextResponse`, `cookies()`, `headers()`, `revalidatePath`, atau query UI langsung. | Uji via *injected adapter* (`fetch` / AI adapter tiruan) di *seam* interface. |
-| **`src/actions/`** | Next.js Server Actions terautentikasi untuk mutasi CRUD DB via `@supabase/ssr` (RLS aktif) + `revalidatePath`. | Memanggil Gemini API, GitHub/Dev.to/HN API langsung, atau membocorkan `SUPABASE_SERVICE_ROLE_KEY`. | Uji logika via pure helpers + kontrak Zod + integrasi DB/RLS. |
+| **`src/actions/`** | Next.js Server Actions terautentikasi untuk mutasi CRUD DB via `@supabase/ssr` (RLS aktif) + `revalidatePath`. | Memanggil Gemini API, GitHub/Dev.to/HN API langsung, atau membocorkan `SUPABASE_SECRET_KEY`. | Uji logika via pure helpers + kontrak Zod + integrasi DB/RLS. |
 | **`src/app/api/`** | HTTP *adapter* tipis (`export const maxDuration`), cek `requireAllowedUser` / `CRON_SECRET`, baca/tulis cache DB, dan panggil `src/services/`. | Menanam logika bisnis *parsing*/kalkulasi skor panjang langsung di dalam `route.ts`. | Integrasi HTTP handler + verifikasi guard auth/cron. |
 
 ---
@@ -45,7 +45,7 @@ UI (src/app/(dashboard)/**, src/components/**)
 ### Tugas
 - [ ] Instal paket inti: `@supabase/supabase-js`, `@supabase/ssr`, `zod`, `lucide-react`, serta devDependency `vitest` (dan `@vitest/coverage-v8` bila diperlukan).
 - [ ] Tambahkan script `"test": "vitest run"` di `package.json` dan buat `vitest.config.ts` dengan alias path `@/*` selaras `tsconfig.json`.
-- [ ] Buat `.env.example` berisi tepat 7 variabel tanpa nilai rahasia: `NEXT_PUBLIC_SUPABASE_URL=`, `NEXT_PUBLIC_SUPABASE_ANON_KEY=`, `SUPABASE_SERVICE_ROLE_KEY=`, `GEMINI_API_KEY=`, `GITHUB_TOKEN=`, `CRON_SECRET=`, `ALLOWED_USER_EMAIL=`.
+- [ ] Buat `.env.example` berisi tepat 7 variabel tanpa nilai rahasia: `NEXT_PUBLIC_SUPABASE_URL=`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=`, `SUPABASE_SECRET_KEY=`, `GEMINI_API_KEY=`, `GITHUB_TOKEN=`, `CRON_SECRET=`, `ALLOWED_USER_EMAIL=`.
 - [ ] Tulis `supabase/migrations/0001_initial_schema_and_rls.sql` mencakup:
   - 14 enum kanonik sesuai `GLOSSARY.md` (`skill_category`, `skill_status`, `skill_source`, `internship_status`, `skill_priority`, `resource_source`, `track_status`, `module_type`, `module_status`, `module_content_status`, `digest_source`, `quiz_source_type`, `interview_card_source`, `confidence_level`).
   - 13 tabel (`profiles`, `skills`, `target_internships`, `internship_skills`, `curated_resources`, `learning_tracks`, `track_modules`, `lab_submissions`, `daily_digests`, `notes`, `quiz_attempts`, `interview_cards`, `interview_attempts`) lengkap dengan seluruh index, `UNIQUE (user_id, slug)` pada `skills`, `UNIQUE (skill_id, url)` pada `curated_resources`, dan `UNIQUE (user_id, source, external_id)` pada `daily_digests`.
@@ -91,7 +91,7 @@ feat(db): add initial supabase schema migration, rls policies, and zod contracts
 
 ### Tugas
 - [ ] Pastikan `shadcn/ui` terinisialisasi (`components.json`, `src/lib/utils.ts`, token CSS variables di `src/app/globals.css`) dan komponen dasar (`button`, `card`, `badge`, `dialog`, `tabs`, `input`, `textarea`, `select`, `sheet`, `tooltip`, `progress`, `separator`) tersedia di `src/components/ui/`.
-- [ ] Buat *factory* klien Supabase di `src/lib/supabase/client.ts` (`createBrowserClient`), `src/lib/supabase/server.ts` (`createServerClient` berbasis `cookies()` Next.js 16 async), dan helper refresh sesi `src/lib/supabase/proxy.ts` (serta helper `createAdminClient` khusus server-only untuk cron).
+- [ ] Buat *factory* klien Supabase di `src/lib/supabase/client.ts` (`createBrowserClient` dengan `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), `src/lib/supabase/server.ts` (`createServerClient` berbasis `cookies()` Next.js 16 async + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), dan helper refresh sesi `src/lib/supabase/proxy.ts` (serta helper `createAdminClient` dengan `SUPABASE_SECRET_KEY` khusus server-only untuk cron).
 - [ ] Buat *pure guard module* `src/lib/auth-guard.ts` (`isAllowedEmail`, `requireAllowedUser`, dan `verifyCronSecret` dengan perbandingan konstan waktu) beserta unit test `src/lib/__tests__/auth-guard.test.ts` (menguji email cocok, email berbeda, env kosong, dan header Bearer cron).
 - [ ] Implementasikan `src/proxy.ts` (ekspor fungsi `proxy` + `config.matcher` mengecualikan asset statis & `/api/cron/*`) untuk me-refresh sesi Supabase dan mengalihkan request tidak terautentikasi / tidak lolos `ALLOWED_USER_EMAIL` ke `/login`.
 - [ ] Buat halaman `/login` mendukung login Email/Password maupun GitHub OAuth via Supabase Auth (tanpa tombol registrasi publik).

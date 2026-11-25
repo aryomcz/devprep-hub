@@ -122,8 +122,8 @@ Detail konteks dan konsekuensi seluruh keputusan teknis tercatat pada `docs/DECI
 ### Keamanan, Batasan Free Tier & Environment Variables
 * Seluruh secret hanya diakses di sisi server (Route Handlers, Server Actions, `src/services/`) dan wajib terdaftar kosong di `.env.example`:
   - `NEXT_PUBLIC_SUPABASE_URL` *(publik)*
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY` *(publik)*
-  - `SUPABASE_SERVICE_ROLE_KEY` *(server-only, khusus `/api/cron/daily-digest`)*
+  - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` *(publik)*
+  - `SUPABASE_SECRET_KEY` *(server-only, khusus `/api/cron/daily-digest`)*
   - `GEMINI_API_KEY` *(server-only)*
   - `GITHUB_TOKEN` *(server-only)*
   - `CRON_SECRET` *(server-only)*
@@ -199,7 +199,7 @@ interview_cards (1) ── (N) interview_attempts
 * `POST /api/tracks/[id]/modules/[moduleId]/generate` — Mengisi detail 1 `TrackModule` secara *on-demand*: jalankan `HybridSourcing` paralel (timeout 4 detik/sumber, cache 7 hari) + 1 panggilan Gemini terfokus, lalu simpan permanen ke `JSONB` (`content_status = 'ready'`).
 * `POST /api/labs/review` — Menyaring & memangkas *diff* commit (maks. 12.000 karakter) atau potongan kode, mengevaluasi `lab_submissions` terhadap *Acceptance Criteria*, serta menyisipkan 2 `interview_cards` baru.
 * `GET /api/resources/lookup?q=...` — Pencarian cepat ke Wikipedia/MDN/Stack Exchange dari editor catatan (timeout 4 detik/sumber).
-* `GET /api/cron/daily-digest` — Endpoint terjadwal harian terproteksi `Authorization: Bearer <CRON_SECRET>` menggunakan `SUPABASE_SERVICE_ROLE_KEY` untuk mengisi `daily_digests` secara idempoten.
+* `GET /api/cron/daily-digest` — Endpoint terjadwal harian terproteksi `Authorization: Bearer <CRON_SECRET>` menggunakan `SUPABASE_SECRET_KEY` untuk mengisi `daily_digests` secara idempoten.
 
 ---
 

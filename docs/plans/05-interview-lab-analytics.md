@@ -88,7 +88,7 @@ feat(interview): build interview lab workspace with 2-minute timer and review qu
   - `ReadinessOverview.tsx` (ringkasan `ReadinessMeter` target magang teratas dan progres `One-App Capstone` aktif).
   - `MasteryChart.tsx` (ringkasan `MasteryScore` per `Skill`, tren `QuizAttempt`, dan *learning streak*).
 - [ ] Lengkapi `src/app/(dashboard)/dashboard/page.tsx` sebagai Server Component yang hanya membaca data ter-cache dari PostgreSQL via RLS (nol panggilan Gemini/Public API pada halaman baca).
-- [ ] Lakukan audit batas modul (`ADR-011`) untuk memastikan: `src/lib/` bebas NextRequest/UI, `src/services/` bebas primitif Next.js (`cookies`/`revalidatePath`/`NextRequest`), `src/actions/` tidak memanggil Gemini/Public API, dan `SUPABASE_SERVICE_ROLE_KEY` hanya dipakai di `/api/cron/daily-digest`.
+- [ ] Lakukan audit batas modul (`ADR-011`) untuk memastikan: `src/lib/` bebas NextRequest/UI, `src/services/` bebas primitif Next.js (`cookies`/`revalidatePath`/`NextRequest`), `src/actions/` tidak memanggil Gemini/Public API, dan `SUPABASE_SECRET_KEY` hanya dipakai di `/api/cron/daily-digest`.
 
 ### Verification Checklist
 - [ ] `npx tsc --noEmit` lulus dengan 0 error.
