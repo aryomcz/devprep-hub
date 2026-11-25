@@ -90,17 +90,17 @@ feat(db): add initial supabase schema migration, rls policies, and zod contracts
 - `src/app/(dashboard)/dashboard/page.tsx` *(baru — placeholder shell terproteksi)*
 
 ### Tugas
-- [ ] Pastikan `shadcn/ui` terinisialisasi (`components.json`, `src/lib/utils.ts`, token CSS variables di `src/app/globals.css`) dan komponen dasar (`button`, `card`, `badge`, `dialog`, `tabs`, `input`, `textarea`, `select`, `sheet`, `tooltip`, `progress`, `separator`) tersedia di `src/components/ui/`.
-- [ ] Buat *factory* klien Supabase di `src/lib/supabase/client.ts` (`createBrowserClient` dengan `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), `src/lib/supabase/server.ts` (`createServerClient` berbasis `cookies()` Next.js 16 async + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), dan helper refresh sesi `src/lib/supabase/proxy.ts` (serta helper `createAdminClient` dengan `SUPABASE_SECRET_KEY` khusus server-only untuk cron).
-- [ ] Buat *pure guard module* `src/lib/auth-guard.ts` (`isAllowedEmail`, `requireAllowedUser`, dan `verifyCronSecret` dengan perbandingan konstan waktu) beserta unit test `src/lib/__tests__/auth-guard.test.ts` (menguji email cocok, email berbeda, env kosong, dan header Bearer cron).
-- [ ] Implementasikan `src/proxy.ts` (ekspor fungsi `proxy` + `config.matcher` mengecualikan asset statis & `/api/cron/*`) untuk me-refresh sesi Supabase dan mengalihkan request tidak terautentikasi / tidak lolos `ALLOWED_USER_EMAIL` ke `/login`.
-- [ ] Buat halaman `/login` mendukung login Email/Password maupun GitHub OAuth via Supabase Auth (tanpa tombol registrasi publik).
-- [ ] Bangun komponen shell `src/components/layout/{Sidebar,MobileNav,PageHeader}.tsx` berbasis komponen `shadcn/ui`, serta `src/app/(dashboard)/layout.tsx` yang memverifikasi `requireAllowedUser()` di server sebelum merender konten rute privat.
+- [x] Pastikan `shadcn/ui` terinisialisasi (`components.json`, `src/lib/utils.ts`, token CSS variables di `src/app/globals.css`) dan komponen dasar (`button`, `card`, `badge`, `dialog`, `tabs`, `input`, `textarea`, `select`, `sheet`, `tooltip`, `progress`, `separator`) tersedia di `src/components/ui/`.
+- [x] Buat *factory* klien Supabase di `src/lib/supabase/client.ts` (`createBrowserClient` dengan `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), `src/lib/supabase/server.ts` (`createServerClient` berbasis `cookies()` Next.js 16 async + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), dan helper refresh sesi `src/lib/supabase/proxy.ts` (serta helper `createAdminClient` dengan `SUPABASE_SECRET_KEY` khusus server-only untuk cron).
+- [x] Buat *pure guard module* `src/lib/auth-guard.ts` (`isAllowedEmail`, `requireAllowedUser`, dan `verifyCronSecret` dengan perbandingan konstan waktu) beserta unit test `src/lib/__tests__/auth-guard.test.ts` (menguji email cocok, email berbeda, env kosong, dan header Bearer cron).
+- [x] Implementasikan `src/proxy.ts` (ekspor fungsi `proxy` + `config.matcher` mengecualikan asset statis & `/api/cron/*`) untuk me-refresh sesi Supabase dan mengalihkan request tidak terautentikasi / tidak lolos `ALLOWED_USER_EMAIL` ke `/login`.
+- [x] Buat halaman `/login` mendukung login Email/Password maupun GitHub OAuth via Supabase Auth (tanpa tombol registrasi publik).
+- [x] Bangun komponen shell `src/components/layout/{Sidebar,MobileNav,PageHeader}.tsx` berbasis komponen `shadcn/ui`, serta `src/app/(dashboard)/layout.tsx` yang memverifikasi `requireAllowedUser()` di server sebelum merender konten rute privat.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
-- [ ] `npm run build` berhasil tanpa deprecation warning terkait routing/proxy Next.js 16.
-- [ ] Verifikasi lokal: akses `/dashboard` tanpa sesi redirect ke `/login`; login dengan email di luar `ALLOWED_USER_EMAIL` ditolak; `src/lib/auth-guard.ts` teruji lewat unit test.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
+- [x] `npm run build` berhasil tanpa deprecation warning terkait routing/proxy Next.js 16.
+- [x] Verifikasi lokal: akses `/dashboard` tanpa sesi redirect ke `/login`; login dengan email di luar `ALLOWED_USER_EMAIL` ditolak; `src/lib/auth-guard.ts` teruji lewat unit test.
 
 ### Saran Conventional Commit
 ```text
@@ -177,3 +177,4 @@ feat(github): add github repository sync service and route handler
 ## Handoff Log
 
 - **2026-11-25 — Step 1.1 (Selesai & Di-commit):** Migrasi SQL `supabase/migrations/0001_initial_schema_and_rls.sql` (14 enum, 13 tabel, RLS penuh, trigger `profiles`, RPC `save_internship_analysis` & `merge_skills`), kontrak TypeScript `src/types/database.ts`, kontrak Zod `src/types/schemas.ts`, unit test `src/types/__tests__/schemas.test.ts` (5/5 lulus), `vitest.config.ts`, dan `.env.example` (diperbarui ke `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` & `SUPABASE_SECRET_KEY`). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
+- **2026-11-25 — Step 1.2 (Selesai & Di-commit):** Modul `src/lib/auth-guard.ts` + test (5/5 lulus), klien Supabase SSR/admin, `src/proxy.ts` Next.js 16, halaman `/login` tanpa registrasi publik, dan shell `(dashboard)` berbasis `<Suspense>` (`cacheComponents: true`). Lulus `tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`, serta uji login lokal.

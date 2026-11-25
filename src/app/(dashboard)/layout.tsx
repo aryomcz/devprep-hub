@@ -3,6 +3,7 @@ import { Suspense, type ReactNode } from "react";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
+import { createClient } from "@/lib/supabase/server";
 
 async function AuthenticatedShell({ children }: { children: ReactNode }) {
   let user: { id: string; email: string };
@@ -15,6 +16,12 @@ async function AuthenticatedShell({ children }: { children: ReactNode }) {
     }
     redirect("/login");
   }
+
+  // Ensure pre-existing auth.users rows created prior to trigger migration have a profiles row.
+  const supabase = await createClient();
+  await supabase
+    .from("profiles")
+    .upsert({ id: user.id }, { onConflict: "id", ignoreDuplicates: true });
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
