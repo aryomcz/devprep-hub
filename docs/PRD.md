@@ -111,7 +111,7 @@ DevPrep Hub menyatukan pemetaan profil GitHub dan analisis lowongan magang (`Tar
 
 ### Tech Stack Terkunci
 * **Framework:** Next.js `16.4.6` (App Router, TypeScript, menggunakan `src/proxy.ts` sesuai konvensi Next.js 16 — bukan konvensi middleware lama).
-* **Styling & UI:** Tailwind CSS v4, komponen modular aksesibel (Radix/shadcn), ikon Lucide, editor ringan tanpa Monaco/CodeMirror (`ADR-009`), serta *syntax highlighter* ringan untuk blok kode *read-only* `Warm-up Drill`.
+* **Styling & UI:** Tailwind CSS v4 + `shadcn/ui` (Radix UI primitives, `class-variance-authority`, `clsx`, `tailwind-merge` via `src/lib/utils.ts`, konfigurasi `components.json`), ikon Lucide, editor ringan tanpa Monaco/CodeMirror (`ADR-009`), serta *syntax highlighter* ringan untuk blok kode *read-only* `Warm-up Drill`.
 * **Database, Auth & Types:** Supabase (PostgreSQL + Supabase Auth + RLS penuh di seluruh tabel), akses melalui `@supabase/supabase-js` + `@supabase/ssr`, migrasi SQL terversi di `supabase/migrations/*.sql`, *generated TypeScript types* di `src/types/database.ts`, serta PostgreSQL RPC untuk transaksi atomik lintas tabel (`ADR-005`).
 * **Validasi & AI Engine:** Zod untuk validasi payload input, output JSON Gemini, dan seluruh kolom `JSONB`; Google Gemini API Free Tier dengan *Structured JSON Output*.
 * **Deployment & Cron:** Vercel Hobby Plan (`maxDuration = 30` pada Route Handler AI) + Vercel Cron Jobs.
@@ -265,7 +265,7 @@ dev-prep-hub/
 │   │   ├── globals.css             # Termasuk aturan @media print A4
 │   │   └── layout.tsx
 │   ├── components/
-│   │   ├── ui/                     # Primitif UI (Button, Card, Tabs, Dialog, Badge)
+│   │   ├── ui/                     # Komponen shadcn/ui (button, card, badge, dialog, tabs, input, textarea, select, sheet, tooltip, progress, separator)
 │   │   ├── layout/                 # Sidebar, MobileNav, PageHeader
 │   │   ├── dashboard/              # TodaysFocusCard, ReadinessOverview, MasteryChart
 │   │   ├── internships/            # JDAnalyzerForm, ReadinessCard, JargonList
@@ -276,6 +276,7 @@ dev-prep-hub/
 │   │   └── interview/              # InterviewTimer, SpacedRepetitionQueue
 │   ├── lib/
 │   │   ├── supabase/               # server.ts, client.ts, proxy.ts
+│   │   ├── utils.ts                # Helper cn() untuk komponen shadcn/ui
 │   │   ├── gemini.ts               # Client Gemini + Structured Output helpers
 │   │   ├── skill-normalizer.ts     # Canonicalizer simbol & kamus alias skill
 │   │   ├── cloze-parser.ts         # State-aware parser {{...}} & {{cloze:...}}
@@ -289,6 +290,7 @@ dev-prep-hub/
 │   └── types/
 │       ├── database.ts             # Generated Supabase TypeScript types
 │       └── schemas.ts              # Zod schemas untuk validasi input & JSONB
+├── components.json                 # Konfigurasi CLI shadcn/ui (Tailwind v4, alias @/*)
 ├── vercel.json                     # Konfigurasi Vercel Cron harian
 └── .env.example                    # Template variabel lingkungan (tanpa nilai rahasia)
 ```
