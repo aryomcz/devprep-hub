@@ -43,23 +43,23 @@ UI (src/app/(dashboard)/**, src/components/**)
 - `src/types/__tests__/schemas.test.ts` *(baru)*
 
 ### Tugas
-- [ ] Instal paket inti: `@supabase/supabase-js`, `@supabase/ssr`, `zod`, `lucide-react`, serta devDependency `vitest` (dan `@vitest/coverage-v8` bila diperlukan).
-- [ ] Tambahkan script `"test": "vitest run"` di `package.json` dan buat `vitest.config.ts` dengan alias path `@/*` selaras `tsconfig.json`.
-- [ ] Buat `.env.example` berisi tepat 7 variabel tanpa nilai rahasia: `NEXT_PUBLIC_SUPABASE_URL=`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=`, `SUPABASE_SECRET_KEY=`, `GEMINI_API_KEY=`, `GITHUB_TOKEN=`, `CRON_SECRET=`, `ALLOWED_USER_EMAIL=`.
-- [ ] Tulis `supabase/migrations/0001_initial_schema_and_rls.sql` mencakup:
+- [x] Instal paket inti: `@supabase/supabase-js`, `@supabase/ssr`, `zod`, `lucide-react`, serta devDependency `vitest` (dan `@vitest/coverage-v8` bila diperlukan).
+- [x] Tambahkan script `"test": "vitest run"` di `package.json` dan buat `vitest.config.ts` dengan alias path `@/*` selaras `tsconfig.json`.
+- [x] Buat `.env.example` berisi tepat 7 variabel tanpa nilai rahasia: `NEXT_PUBLIC_SUPABASE_URL=`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=`, `SUPABASE_SECRET_KEY=`, `GEMINI_API_KEY=`, `GITHUB_TOKEN=`, `CRON_SECRET=`, `ALLOWED_USER_EMAIL=`.
+- [x] Tulis `supabase/migrations/0001_initial_schema_and_rls.sql` mencakup:
   - 14 enum kanonik sesuai `GLOSSARY.md` (`skill_category`, `skill_status`, `skill_source`, `internship_status`, `skill_priority`, `resource_source`, `track_status`, `module_type`, `module_status`, `module_content_status`, `digest_source`, `quiz_source_type`, `interview_card_source`, `confidence_level`).
   - 13 tabel (`profiles`, `skills`, `target_internships`, `internship_skills`, `curated_resources`, `learning_tracks`, `track_modules`, `lab_submissions`, `daily_digests`, `notes`, `quiz_attempts`, `interview_cards`, `interview_attempts`) lengkap dengan seluruh index, `UNIQUE (user_id, slug)` pada `skills`, `UNIQUE (skill_id, url)` pada `curated_resources`, dan `UNIQUE (user_id, source, external_id)` pada `daily_digests`.
   - Trigger otomatis pembuatan baris `profiles` saat user baru dibuat di `auth.users`.
   - `ENABLE ROW LEVEL SECURITY` dan policy kepemilikan (`auth.uid()`) pada seluruh 13 tabel.
   - PostgreSQL RPC `save_internship_analysis(...)` (atomik menyimpan `target_internships`, upsert `skills`, & mapping `internship_skills`) serta `merge_skills(p_source_skill_id, p_target_skill_id)` (memindahkan semua relasi anak secara atomik dan menghapus skill sumber).
-- [ ] Buat `src/types/database.ts` yang merepresentasikan skema PostgreSQL di atas secara ketat, dan `src/types/schemas.ts` berisi skema Zod untuk seluruh kolom `JSONB` (`JargonEntry`, `ConceptBrief`, `WarmupDrill`, `HandsOnTicket`, `AiReviewFeedback`) dan input API.
-- [ ] Tulis unit test kontrak di `src/types/__tests__/schemas.test.ts` yang memverifikasi validasi payload valid maupun penolakan struktur `JSONB`/enum yang cacat.
+- [x] Buat `src/types/database.ts` yang merepresentasikan skema PostgreSQL di atas secara ketat, dan `src/types/schemas.ts` berisi skema Zod untuk seluruh kolom `JSONB` (`JargonEntry`, `ConceptBrief`, `WarmupDrill`, `HandsOnTicket`, `AiReviewFeedback`) dan input API.
+- [x] Tulis unit test kontrak di `src/types/__tests__/schemas.test.ts` yang memverifikasi validasi payload valid maupun penolakan struktur `JSONB`/enum yang cacat.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit` lulus tanpa error.
-- [ ] `npm run lint` lulus tanpa warning/error baru.
-- [ ] `npm test` menjalankan `schemas.test.ts` dan seluruh kasus lulus.
-- [ ] Pemeriksaan manual memastikan seluruh 13 nama tabel dan 40 literal enum di `0001_initial_schema_and_rls.sql`, `database.ts`, dan `schemas.ts` persis sama dengan `docs/GLOSSARY.md`.
+- [x] `npx tsc --noEmit` lulus tanpa error.
+- [x] `npm run lint` lulus tanpa warning/error baru.
+- [x] `npm test` menjalankan `schemas.test.ts` dan seluruh kasus lulus.
+- [x] Pemeriksaan manual memastikan seluruh 13 nama tabel dan 40 literal enum di `0001_initial_schema_and_rls.sql`, `database.ts`, dan `schemas.ts` persis sama dengan `docs/GLOSSARY.md`.
 
 ### Saran Conventional Commit
 ```text
@@ -176,4 +176,4 @@ feat(github): add github repository sync service and route handler
 
 ## Handoff Log
 
-*(Kosong — akan diisi setelah setiap sub-step dikonfirmasi lulus verifikasi)*
+- **2026-11-25 — Step 1.1 (Selesai & Di-commit):** Migrasi SQL `supabase/migrations/0001_initial_schema_and_rls.sql` (14 enum, 13 tabel, RLS penuh, trigger `profiles`, RPC `save_internship_analysis` & `merge_skills`), kontrak TypeScript `src/types/database.ts`, kontrak Zod `src/types/schemas.ts`, unit test `src/types/__tests__/schemas.test.ts` (5/5 lulus), `vitest.config.ts`, dan `.env.example` (diperbarui ke `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` & `SUPABASE_SECRET_KEY`). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
