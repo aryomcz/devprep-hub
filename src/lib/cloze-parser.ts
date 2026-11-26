@@ -19,13 +19,24 @@ type FenceState = {
 
 function findClosingDoubleBrace(text: string, startIndex: number): number {
   let braceDepth = 0;
+  let fallbackIdx = -1;
 
   for (let i = startIndex; i < text.length - 1; i++) {
     const ch = text[i];
+    if (ch === "{" && text[i + 1] === "{") {
+      if (fallbackIdx !== -1) {
+        return fallbackIdx;
+      }
+      i++;
+      continue;
+    }
     if (ch === "{" && text[i + 1] !== "{") {
       braceDepth++;
     } else if (ch === "}") {
       if (braceDepth > 0) {
+        if (text[i + 1] === "}" && fallbackIdx === -1) {
+          fallbackIdx = i;
+        }
         braceDepth--;
       } else if (text[i + 1] === "}") {
         return i;
@@ -33,7 +44,7 @@ function findClosingDoubleBrace(text: string, startIndex: number): number {
     }
   }
 
-  return -1;
+  return fallbackIdx;
 }
 
 function parseClozeBody(raw: string): { answer: string; hint?: string } | null {

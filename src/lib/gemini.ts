@@ -32,7 +32,6 @@ export class GeminiApiError extends Error {
 export type GenerateStructuredJsonOptions<T> = {
   prompt: string;
   systemInstruction?: string;
-  jsonSchema?: Record<string, unknown>;
   schema: z.ZodType<T>;
   timeoutMs?: number;
   maxRetries?: number;

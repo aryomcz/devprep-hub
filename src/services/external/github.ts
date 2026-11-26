@@ -154,12 +154,13 @@ async function fetchPackageJsonDeps(
   repoFullName: string,
   fetchFn: typeof fetch,
   headers: HeadersInit,
+  timeoutMs = REQUEST_TIMEOUT_MS,
 ): Promise<string[]> {
   const res = await fetchFn(
     `${GITHUB_API_BASE}/repos/${repoFullName}/contents/package.json`,
     {
       headers,
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(Math.max(50, timeoutMs)),
     },
   );
   if (!res.ok) return [];
@@ -211,6 +212,7 @@ export async function fetchUserGithubSkills(
   const fetchFn = options.fetchFn ?? fetch;
   const maxRepos = options.maxRepos ?? DEFAULT_MAX_REPOS;
   const headers = buildGithubHeaders(options.token);
+  const deadline = Date.now() + REQUEST_TIMEOUT_MS;
 
   const reposRes = await fetchFn(
     `${GITHUB_API_BASE}/users/${encodeURIComponent(trimmedUsername)}/repos?type=owner&sort=updated&per_page=40`,
@@ -270,11 +272,15 @@ export async function fetchUserGithubSkills(
     )
     .slice(0, MAX_PACKAGE_JSON_CHECKS);
 
-  const pkgResults = await Promise.allSettled(
-    jsTsCandidates.map((repo) =>
-      fetchPackageJsonDeps(repo.full_name, fetchFn, headers),
-    ),
-  );
+  const remainingMs = deadline - Date.now();
+  const pkgResults =
+    remainingMs > 0
+      ? await Promise.allSettled(
+          jsTsCandidates.map((repo) =>
+            fetchPackageJsonDeps(repo.full_name, fetchFn, headers, remainingMs),
+          ),
+        )
+      : [];
 
   for (const result of pkgResults) {
     if (result.status !== "fulfilled") continue;

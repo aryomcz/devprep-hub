@@ -38,6 +38,17 @@ const SOURCE_LABELS: Record<ResourceSource, string> = {
   github: "GitHub",
 };
 
+function toSafeExternalUrl(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl);
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+      ? parsed.toString()
+      : "#";
+  } catch {
+    return "#";
+  }
+}
+
 export function QuickLookupDrawer({
   onInsertSnippet,
 }: {
@@ -84,12 +95,15 @@ export function QuickLookupDrawer({
   }
 
   function handleInsert(item: LookupResultItem) {
+    const safeUrl = toSafeExternalUrl(item.url);
     const snippet = [
       `### {{${item.title}}}`,
       "",
       item.summary || "Ringkasan konsep.",
       "",
-      `> Referensi (${SOURCE_LABELS[item.source]}): [${item.title}](${item.url})`,
+      safeUrl !== "#"
+        ? `> Referensi (${SOURCE_LABELS[item.source]}): [${item.title}](${safeUrl})`
+        : `> Referensi (${SOURCE_LABELS[item.source]}): ${item.title}`,
     ].join("\n");
 
     onInsertSnippet(snippet);
@@ -160,7 +174,7 @@ export function QuickLookupDrawer({
                       {SOURCE_LABELS[item.source]}
                     </Badge>
                     <a
-                      href={item.url}
+                      href={toSafeExternalUrl(item.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"

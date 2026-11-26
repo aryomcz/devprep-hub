@@ -65,9 +65,7 @@ export function JargonList({
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <CardTitle className="text-base">
-              Glosarium Istilah JD (JargonGlossary)
-            </CardTitle>
+            <CardTitle className="text-base">Glosarium Istilah JD</CardTitle>
             <CardDescription>
               Simpan istilah penting ke Smart Notes dalam format{" "}
               <code className="font-mono text-xs">{"{{istilah}}"}</code> untuk

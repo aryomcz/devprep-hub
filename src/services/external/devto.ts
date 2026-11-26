@@ -1,3 +1,5 @@
+import { isSafeHttpUrl } from "@/services/external/hackernews";
+
 const REQUEST_TIMEOUT_MS = 4000;
 
 export type DevToResourceItem = {
@@ -44,7 +46,7 @@ export async function fetchDevToResources(
 
   return data
     .filter((item): item is { id?: number | string; title: string; url: string; description?: string; tag_list?: string[] } =>
-      Boolean(item.title && item.url),
+      Boolean(item.title && item.url && isSafeHttpUrl(item.url)),
     )
     .map((item) => ({
       source: "devto" as const,

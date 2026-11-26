@@ -30,6 +30,8 @@ export type ReadinessItem = {
   priority: SkillPriority;
 };
 
+export type ReadinessMeter = number;
+
 const CONFIDENCE_SCORES: Record<ConfidenceLevel, number> = {
   confused: 25,
   partial: 65,
@@ -119,7 +121,7 @@ export function calculateMasteryBreakdown(input: MasteryInput): MasteryBreakdown
   };
 }
 
-export function calculateReadinessMeter(items: ReadinessItem[]): number {
+export function calculateReadinessMeter(items: ReadinessItem[]): ReadinessMeter {
   if (items.length === 0) return 0;
 
   let weightedScoreSum = 0;

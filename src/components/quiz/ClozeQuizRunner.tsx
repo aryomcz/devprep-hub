@@ -687,7 +687,7 @@ export function ClozeQuizRunner({
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Riwayat QuizAttempt Terbaru</CardTitle>
+          <CardTitle className="text-base">Riwayat Kuis Terbaru</CardTitle>
           <CardDescription>
             Setiap kuis pada catatan bertaut Skill memengaruhi rata-rata 3 skor
             terbaru di rumus Mastery Score.

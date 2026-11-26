@@ -127,6 +127,21 @@ describe("parseClozeMarkdown", () => {
     expect(result.items[0]?.answer).toBe("a {b} c");
     expect(result.renderedPrompt).toBe("Bentuk object: ___CLOZE_1___ dalam teks.");
   });
+
+  it("handles unbalanced opening brace inside code cloze", () => {
+    const input = "```ts\n{{cloze:if (ok) {::opening block}}\n```";
+    const result = parseClozeMarkdown(input);
+
+    expect(result.clozeCount).toBe(1);
+    expect(result.items[0]).toEqual({
+      index: 1,
+      placeholder: "___CLOZE_1___",
+      answer: "if (ok) {",
+      hint: "opening block",
+      isCodeCloze: true,
+    });
+    expect(result.renderedPrompt).toBe("```ts\n___CLOZE_1___\n```");
+  });
 });
 
 describe("evaluateClozeAnswer", () => {

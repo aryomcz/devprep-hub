@@ -683,6 +683,25 @@ export type Database = {
         };
         Returns: string;
       };
+      submit_quiz_attempt: {
+        Args: {
+          p_skill_id: string;
+          p_source_type: QuizSourceType;
+          p_score: number;
+          p_total_questions: number;
+          p_correct_answers: number;
+          p_mastery_score: number;
+          p_skill_status: SkillStatus;
+        };
+        Returns: string;
+      };
+      sync_github_skills: {
+        Args: {
+          p_github_username: string;
+          p_skills: Json;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       skill_category: SkillCategory;

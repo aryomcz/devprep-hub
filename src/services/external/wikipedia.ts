@@ -1,3 +1,5 @@
+import { isSafeHttpUrl } from "@/services/external/hackernews";
+
 const REQUEST_TIMEOUT_MS = 4000;
 
 export type WikipediaLookupItem = {
@@ -36,7 +38,13 @@ export async function fetchWikipediaResources(
   };
 
   const url = data.content_urls?.desktop?.page;
-  if (!data.title || !data.extract || !url || data.type === "disambiguation") {
+  if (
+    !data.title ||
+    !data.extract ||
+    !url ||
+    !isSafeHttpUrl(url) ||
+    data.type === "disambiguation"
+  ) {
     return [];
   }
 
@@ -90,5 +98,6 @@ export async function fetchMdnResources(
         ? doc.mdn_url
         : `https://developer.mozilla.org${doc.mdn_url}`,
       summary: doc.summary?.trim() ?? "",
-    }));
+    }))
+    .filter((item) => isSafeHttpUrl(item.url));
 }

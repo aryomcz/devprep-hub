@@ -1,4 +1,5 @@
 import { fetchDevToResources } from "@/services/external/devto";
+import { isSafeHttpUrl } from "@/services/external/hackernews";
 import { fetchStackExchangeResources } from "@/services/external/stackexchange";
 import {
   fetchMdnResources,
@@ -98,7 +99,9 @@ export async function getOrFetchCuratedResources(
   for (const outcome of settled) {
     if (outcome.status !== "fulfilled") continue;
     for (const item of outcome.value) {
-      if (!item.url || deduped.has(item.url)) continue;
+      if (!item.url || !isSafeHttpUrl(item.url) || deduped.has(item.url)) {
+        continue;
+      }
       deduped.set(item.url, {
         source: item.source,
         title: item.title,

@@ -1,3 +1,5 @@
+import { isSafeHttpUrl } from "@/services/external/hackernews";
+
 const REQUEST_TIMEOUT_MS = 4000;
 
 export type StackExchangeLookupItem = {
@@ -48,7 +50,7 @@ export async function fetchStackExchangeResources(
 
   return (data.items ?? [])
     .filter((item): item is { title: string; link: string; score?: number; answer_count?: number } =>
-      Boolean(item.title && item.link),
+      Boolean(item.title && item.link && isSafeHttpUrl(item.link)),
     )
     .map((item) => ({
       source: "stackoverflow" as const,

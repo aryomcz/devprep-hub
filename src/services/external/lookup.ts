@@ -1,3 +1,4 @@
+import { isSafeHttpUrl } from "@/services/external/hackernews";
 import { fetchStackExchangeResources } from "@/services/external/stackexchange";
 import {
   fetchMdnResources,
@@ -41,7 +42,9 @@ export async function lookupTechnicalTerm(
   for (const result of settled) {
     if (result.status !== "fulfilled") continue;
     for (const item of result.value) {
-      if (!item.url || deduped.has(item.url)) continue;
+      if (!item.url || !isSafeHttpUrl(item.url) || deduped.has(item.url)) {
+        continue;
+      }
       deduped.set(item.url, item);
     }
   }

@@ -22,10 +22,10 @@ import { cn } from "@/lib/utils";
 
 export const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/internships", label: "Internships", icon: Briefcase },
+  { href: "/internships", label: "Target Magang", icon: Briefcase },
   { href: "/tracks", label: "Learning Tracks", icon: Compass },
   { href: "/digest", label: "Daily Digest", icon: Newspaper },
-  { href: "/notes", label: "Smart Notes", icon: BookOpen },
+  { href: "/notes", label: "Catatan & Cheat-Sheet", icon: BookOpen },
   { href: "/quiz", label: "Cloze Quiz", icon: HelpCircle },
   { href: "/interview", label: "Interview Lab", icon: MessageSquare },
   { href: "/skills", label: "Master Skills", icon: Wrench },

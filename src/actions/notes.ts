@@ -42,6 +42,25 @@ function getErrorMessage(error: unknown): string {
   return "Terjadi kesalahan saat memproses catatan.";
 }
 
+async function verifyOwnedSkillId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  skillId: string | null | undefined,
+): Promise<string | null> {
+  if (!skillId) return null;
+  const { data, error } = await supabase
+    .from("skills")
+    .select("id")
+    .eq("id", skillId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new Error("Skill terkait tidak ditemukan atau bukan milik Anda.");
+  }
+  return data.id;
+}
+
 export async function createNoteAction(
   input: z.input<typeof createNoteSchema>,
 ): Promise<NoteActionResult<{ noteId: string }>> {
@@ -49,6 +68,11 @@ export async function createNoteAction(
     const user = await requireAllowedUser();
     const parsed = createNoteSchema.parse(input);
     const supabase = await createClient();
+    const ownedSkillId = await verifyOwnedSkillId(
+      supabase,
+      user.id,
+      parsed.skillId,
+    );
 
     const { data, error } = await supabase
       .from("notes")
@@ -56,7 +80,7 @@ export async function createNoteAction(
         user_id: user.id,
         title: parsed.title,
         content_md: parsed.contentMd,
-        skill_id: parsed.skillId ?? null,
+        skill_id: ownedSkillId,
         updated_at: new Date().toISOString(),
       })
       .select("id")
@@ -84,13 +108,18 @@ export async function updateNoteAction(
     const user = await requireAllowedUser();
     const parsed = updateNoteSchema.parse(input);
     const supabase = await createClient();
+    const ownedSkillId = await verifyOwnedSkillId(
+      supabase,
+      user.id,
+      parsed.skillId,
+    );
 
     const { error } = await supabase
       .from("notes")
       .update({
         title: parsed.title,
         content_md: parsed.contentMd,
-        skill_id: parsed.skillId ?? null,
+        skill_id: ownedSkillId,
         updated_at: new Date().toISOString(),
       })
       .eq("id", parsed.id)
@@ -143,6 +172,11 @@ export async function saveToNoteAction(
     const user = await requireAllowedUser();
     const parsed = saveToNoteSchema.parse(input);
     const supabase = await createClient();
+    const ownedSkillId = await verifyOwnedSkillId(
+      supabase,
+      user.id,
+      parsed.skillId,
+    );
 
     const section = [
       `### {{${parsed.term}}}`,
@@ -171,7 +205,7 @@ export async function saveToNoteAction(
         .from("notes")
         .update({
           content_md: nextContent,
-          skill_id: existing.skill_id ?? parsed.skillId ?? null,
+          skill_id: existing.skill_id ?? ownedSkillId,
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id)
@@ -188,7 +222,7 @@ export async function saveToNoteAction(
           user_id: user.id,
           title: parsed.title,
           content_md: section,
-          skill_id: parsed.skillId ?? null,
+          skill_id: ownedSkillId,
           updated_at: new Date().toISOString(),
         })
         .select("id")
