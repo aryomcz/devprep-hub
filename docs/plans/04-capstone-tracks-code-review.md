@@ -53,22 +53,22 @@ feat(tracks): add stage-1 capstone blueprint generator and track overview pages
 - `src/app/(dashboard)/tracks/[id]/modules/[moduleId]/page.tsx` *(baru)*
 
 ### Tugas
-- [ ] Bangun `src/services/ai/module-generator.ts` (`generateModuleContent(context, aiAdapter?)`):
+- [x] Bangun `src/services/ai/module-generator.ts` (`generateModuleContent(context, aiAdapter?)`):
   - Terima konteks `One-App Capstone`, `objective` modul, daftar `CuratedResource`, dan `target_language`.
   - Hasilkan `concept_brief`, 3–5 `warmup_drills` (kode berpenanda slot `___BLANK_1___` dst.), dan `hands_on_ticket` (*Acceptance Criteria* + 3 level `ProgressiveHints`), seluruhnya tervalidasi Zod.
-- [ ] Tulis `src/services/ai/__tests__/module-generator.test.ts` untuk memverifikasi kontrak Zod `concept_brief`, ketersediaan slot `___BLANK_i___` pada `warmup_drills`, kelengkapan 3 level hint, serta propagasi error `429`.
-- [ ] Buat Route Handler tipis `src/app/api/tracks/[id]/modules/[moduleId]/generate/route.ts` (`export const maxDuration = 30`):
+- [x] Tulis `src/services/ai/__tests__/module-generator.test.ts` untuk memverifikasi kontrak Zod `concept_brief`, ketersediaan slot `___BLANK_i___` pada `warmup_drills`, kelengkapan 3 level hint, serta propagasi error `429`.
+- [x] Buat Route Handler tipis `src/app/api/tracks/[id]/modules/[moduleId]/generate/route.ts` (`export const maxDuration = 30`):
   - Verifikasi `requireAllowedUser` dan kepemilikan track/modul.
   - Jika `content_status === 'ready'`, langsung kembalikan data ter-cache tanpa memanggil AI (idempoten).
   - Jalankan `getOrFetchCuratedResources` (`Step 3.3`, cache 7 hari), lalu panggil `generateModuleContent` (maks. 1 *retry*); simpan hasil permanen ke `track_modules` (`content_status = 'ready'`), atau tandai `content_status = 'failed'` bila gagal/`429`.
-- [ ] Bangun `/tracks/[id]/modules/[moduleId]/page.tsx` dan `ModuleTabs.tsx`:
+- [x] Bangun `/tracks/[id]/modules/[moduleId]/page.tsx` dan `ModuleTabs.tsx`:
   - Saat `content_status === 'pending'`, picu endpoint generasi *on-demand* dengan indikator loading yang jelas; saat `failed`, tampilkan pesan ramah & tombol **"Coba Generate Ulang"**.
   - Implementasikan **Tab 1: Concept Brief** (ringkasan konsep, analogi, daftar `CuratedResource` ber-tautan sumber resmi, dan tombol 1-klik **Save to Note** memanggil `saveToNoteAction`).
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`module-generator.test.ts` hijau).
-- [ ] `npm run build` lulus.
-- [ ] Verifikasi lokal: buka modul pertama berstatus `pending`, pastikan konten ter-generate sekali & tersimpan sebagai `ready`, lalu refresh halaman dan pastikan dimuat instan dari PostgreSQL tanpa panggilan Gemini ulang.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`module-generator.test.ts` hijau).
+- [x] `npm run build` lulus.
+- [x] Verifikasi lokal: buka modul pertama berstatus `pending`, pastikan konten ter-generate sekali & tersimpan sebagai `ready`, lalu refresh halaman dan pastikan dimuat instan dari PostgreSQL tanpa panggilan Gemini ulang.
 
 ### Saran Conventional Commit
 ```text
@@ -150,3 +150,4 @@ feat(labs): add diff sanitizer, ai code review endpoint, and auto interview card
 ## Handoff Log
 
 - **2026-11-26 — Step 4.1 (Selesai & Di-commit):** *Deep service* Stage-1 `src/services/ai/track-generator.ts` + `track-generator.test.ts` (4/4 lulus, total 58/58 test hijau), endpoint `POST /api/tracks/generate` (`maxDuration = 30`), `src/actions/tracks.ts`, `TrackBlueprintControls.tsx`, serta halaman `/tracks` dan `/tracks/[id]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test`, dan `npm run build`.
+- **2026-11-26 — Step 4.2 (Selesai & Di-commit):** *Deep service* Stage-2 `src/services/ai/module-generator.ts` + `module-generator.test.ts` (3/3 lulus, total 61/61 test hijau), endpoint *on-demand* `POST /api/tracks/[id]/modules/[moduleId]/generate` (`maxDuration = 30`, idempoten + *Hybrid Sourcing* cache 7 hari), serta `ModuleTabs.tsx` (Tab 1 *Concept Brief* + *Save to Note* + tombol *Coba Generate Ulang*) dan `/tracks/[id]/modules/[moduleId]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test`, dan `npm run build`.

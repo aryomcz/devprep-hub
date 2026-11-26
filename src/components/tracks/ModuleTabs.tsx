@@ -23,6 +23,8 @@ import {
   useTransition,
 } from "react";
 import { saveToNoteAction } from "@/actions/notes";
+import { InlineBlankDrillRunner } from "@/components/tracks/InlineBlankDrillRunner";
+import { ProgressiveHints } from "@/components/tracks/ProgressiveHints";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -373,52 +375,27 @@ export function ModuleTabs({
       </TabsContent>
 
       <TabsContent value="drill">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              Warm-up Drill ({warmupDrills?.length ?? 0} Soal Siap)
-            </CardTitle>
-            <CardDescription>
-              Runner interaktif inline-blank dengan syntax highlight ringan akan
-              disambungkan pada Step 4.3.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-xs text-muted-foreground">
-            {(warmupDrills ?? []).map((drill, idx) => (
-              <div key={idx} className="rounded border bg-muted/30 p-2.5">
-                <span className="font-medium text-foreground">
-                  {idx + 1}. {drill.title}
-                </span>{" "}
-                ({drill.language} • {drill.blanks.length} slot kosong)
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <InlineBlankDrillRunner
+          drills={warmupDrills ?? []}
+          skillId={skill.id}
+          skillName={skill.name}
+        />
       </TabsContent>
 
       <TabsContent value="ticket">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Hands-On Ticket</CardTitle>
-            <CardDescription>
-              Konteks tugas Capstone sudah tersimpan; Progressive Hints 3 tingkat
-              akan disambungkan pada Step 4.3.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <p>{handsOnTicket?.problem_context}</p>
-            <div className="space-y-1">
-              <div className="text-xs font-semibold uppercase text-muted-foreground">
-                Acceptance Criteria ({handsOnTicket?.acceptance_criteria.length ?? 0})
-              </div>
-              <ul className="list-disc space-y-1 pl-5 text-xs">
-                {(handsOnTicket?.acceptance_criteria ?? []).map((c, idx) => (
-                  <li key={idx}>{c}</li>
-                ))}
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
+        {handsOnTicket ? (
+          <ProgressiveHints
+            ticket={handsOnTicket}
+            capstoneTitle={track.capstone_title}
+            targetLanguage={moduleData.target_language}
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Hands-On Ticket Belum Siap</CardTitle>
+            </CardHeader>
+          </Card>
+        )}
       </TabsContent>
 
       <TabsContent value="review">
