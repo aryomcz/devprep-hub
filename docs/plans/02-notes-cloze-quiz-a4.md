@@ -119,15 +119,15 @@ feat(notes): add parallel quick lookup service and reference drawer
 - `src/app/globals.css` *(modifikasi: aturan `@media print` halaman A4 2 kolom)*
 
 ### Tugas
-- [ ] Buat `src/actions/quiz.ts` (`submitQuizAttemptAction`): validasi Zod (`skillId`, `sourceType: 'note_cloze' | 'module_drill'`, `totalQuestions`, `correctAnswers`), hitung skor persentase, simpan baris `quiz_attempts`, ambil 3 skor kuis terbaru + sinyal Lab/Interview terkait, hitung ulang `MasteryScore` dan `SkillStatus` via `src/lib/mastery.ts`, perbarui baris `skills`, dan `revalidatePath`.
-- [ ] Bangun `src/components/quiz/ClozeQuizRunner.tsx` dan `/quiz/page.tsx`: mendukung pilihan catatan (atau filter `Skill`), mode input isian dengan petunjuk opsional (`::petunjuk`), koreksi per soal menggunakan `evaluateClozeAnswer`, ringkasan skor akhir, serta daftar riwayat `QuizAttempt`.
-- [ ] Tambahkan aturan `@media print` A4 (margin rapi, `columns: 2`, `break-inside: avoid` pada blok kode & kartu, sembunyikan elemen non-cetak) di `src/app/globals.css`.
-- [ ] Bangun `src/components/notes/A4PrintView.tsx` dan `/notes/[id]/print/page.tsx` (tanpa sidebar/navbar dashboard, tombol **Cetak / Simpan PDF** via `window.print()`, dan opsi tampilkan/sembunyikan jawaban cloze).
+- [x] Buat `src/actions/quiz.ts` (`submitQuizAttemptAction`): validasi Zod (`skillId`, `sourceType: 'note_cloze' | 'module_drill'`, `totalQuestions`, `correctAnswers`), hitung skor persentase, simpan baris `quiz_attempts`, ambil 3 skor kuis terbaru + sinyal Lab/Interview terkait, hitung ulang `MasteryScore` dan `SkillStatus` via `src/lib/mastery.ts`, perbarui baris `skills`, dan `revalidatePath`.
+- [x] Bangun `src/components/quiz/ClozeQuizRunner.tsx` dan `/quiz/page.tsx`: mendukung pilihan catatan (atau filter `Skill`), mode input isian dengan petunjuk opsional (`::petunjuk`), koreksi per soal menggunakan `evaluateClozeAnswer`, ringkasan skor akhir, serta daftar riwayat `QuizAttempt`.
+- [x] Tambahkan aturan `@media print` A4 (margin rapi, `columns: 2`, `break-inside: avoid` pada blok kode & kartu, sembunyikan elemen non-cetak) di `src/app/globals.css`.
+- [x] Bangun `src/components/notes/A4PrintView.tsx` dan `/notes/[id]/print/page.tsx` (tanpa sidebar/navbar dashboard, tombol **Cetak / Simpan PDF** via `window.print()`, dan opsi tampilkan/sembunyikan jawaban cloze).
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
-- [ ] `npm run build` lulus.
-- [ ] Verifikasi lokal: kerjakan 1 sesi kuis dari catatan di `/quiz`, pastikan `quiz_attempts` tersimpan dan `mastery_score` skill terkait naik (maks. *cap* 65 jika baru sinyal Quiz); buka `/notes/[id]/print` dan cek *print preview* 2 kolom A4.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
+- [x] `npm run build` lulus.
+- [x] Verifikasi lokal: kerjakan 1 sesi kuis dari catatan di `/quiz`, pastikan `quiz_attempts` tersimpan dan `mastery_score` skill terkait naik (maks. *cap* 65 jika baru sinyal Quiz); buka `/notes/[id]/print` dan cek *print preview* 2 kolom A4.
 
 ### Saran Conventional Commit
 ```text
@@ -141,3 +141,4 @@ feat(quiz): add cloze quiz runner, mastery score update, and A4 print view
 - **2026-11-26 — Step 2.1 (Selesai & Di-commit):** Parser *state-aware* `src/lib/cloze-parser.ts` (`parseClozeMarkdown`, `evaluateClozeAnswer`) beserta `src/lib/__tests__/cloze-parser.test.ts` (7/7 lulus, total 43/43 test hijau). Lulus `npm test`, `npx tsc --noEmit`, dan `npm run lint` tanpa dependensi eksternal.
 - **2026-11-26 — Step 2.2 (Selesai & Di-commit):** `src/actions/notes.ts` (CRUD + `saveToNoteAction`), `MarkdownEditor.tsx` (`NotesDirectory` & `MarkdownEditor` berbasis `<Textarea>` monospace + Cloze toolbar + *Live Preview*), `/notes`, dan `/notes/[id]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (43/43), `npm run build`, serta uji browser dengan catatan CSS Flexbox & Gridbox.
 - **2026-11-26 — Step 2.3 (Selesai & Di-commit):** Layanan Quick Lookup paralel `src/services/external/{wikipedia,stackexchange,lookup}.ts` + `lookup.test.ts` (3/3 lulus, total 46/46 test hijau), endpoint `GET /api/resources/lookup`, dan `QuickLookupDrawer.tsx` di editor catatan. Lulus `tsc --noEmit`, `npm run lint`, `npm test`, dan `npm run build`.
+- **2026-11-26 — Step 2.4 (Selesai & Di-commit):** `submitQuizAttemptAction` di `src/actions/quiz.ts`, `ClozeQuizRunner.tsx` & `/quiz`, aturan `@media print` A4 2 kolom di `globals.css`, serta `A4PrintView.tsx` & `/notes/[id]/print`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (46/46), dan `npm run build`.
