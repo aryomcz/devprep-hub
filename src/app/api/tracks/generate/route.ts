@@ -88,9 +88,13 @@ export async function POST(request: NextRequest) {
           .eq("internship_id", internshipId),
       ]);
 
-      if (internshipRes.error) {
+      if (internshipRes.error ?? linksRes.error) {
         return NextResponse.json(
-          { error: internshipRes.error.message },
+          {
+            error:
+              (internshipRes.error ?? linksRes.error)?.message ??
+              "Gagal membaca data lowongan target.",
+          },
           { status: 500 },
         );
       }

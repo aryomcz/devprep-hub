@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
-import type { CachedCuratedResource } from "@/services/external/hybrid-sourcing";
+import type { CachedCuratedResource } from "@/types/database";
 import {
   aiReviewFeedbackSchema,
   conceptBriefSchema,
@@ -61,6 +61,9 @@ async function ModuleWorkspaceLoader({
   const mod = moduleRes.data;
   if (!track || !mod) {
     notFound();
+  }
+  if (mod.status === "locked") {
+    redirect(`/tracks/${track.id}`);
   }
 
   const [skillRes, resourcesRes, submissionsRes] = await Promise.all([

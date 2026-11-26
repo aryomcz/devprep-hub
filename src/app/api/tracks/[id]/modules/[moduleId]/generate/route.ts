@@ -48,7 +48,7 @@ export async function POST(
       supabase
         .from("track_modules")
         .select(
-          "id, track_id, skill_id, order_index, module_type, target_language, objective, content_status, concept_brief, warmup_drills, hands_on_ticket",
+          "id, track_id, skill_id, order_index, module_type, target_language, objective, status, content_status, concept_brief, warmup_drills, hands_on_ticket",
         )
         .eq("id", moduleId)
         .eq("track_id", id)
@@ -72,6 +72,16 @@ export async function POST(
       return NextResponse.json(
         { error: "Track atau modul tidak ditemukan." },
         { status: 404 },
+      );
+    }
+
+    if (mod.status === "locked") {
+      return NextResponse.json(
+        {
+          error:
+            "Modul ini masih terkunci. Selesaikan modul sebelumnya terlebih dahulu.",
+        },
+        { status: 403 },
       );
     }
 

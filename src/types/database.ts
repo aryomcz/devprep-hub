@@ -711,3 +711,9 @@ export type InterviewCard =
   Database["public"]["Tables"]["interview_cards"]["Row"];
 export type InterviewAttempt =
   Database["public"]["Tables"]["interview_attempts"]["Row"];
+
+export type LanguageSkillMode = "microservice" | "language_native";
+
+export type CachedCuratedResource = Omit<CuratedResource, "id"> & {
+  id?: string;
+};

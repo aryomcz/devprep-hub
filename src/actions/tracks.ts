@@ -63,32 +63,6 @@ export async function updateTrackStatusAction(
   }
 }
 
-export async function deleteTrackAction(
-  id: string,
-): Promise<TrackActionResult<undefined>> {
-  try {
-    const user = await requireAllowedUser();
-    const trackId = z.uuid("ID track tidak valid.").parse(id);
-    const supabase = await createClient();
-
-    const { error } = await supabase
-      .from("learning_tracks")
-      .delete()
-      .eq("id", trackId)
-      .eq("user_id", user.id);
-
-    if (error) {
-      return { ok: false, error: error.message };
-    }
-
-    revalidatePath("/tracks");
-    revalidatePath("/dashboard");
-    return { ok: true, data: undefined };
-  } catch (error) {
-    return { ok: false, error: getErrorMessage(error) };
-  }
-}
-
 export async function unlockNextModuleAction(
   input: z.input<typeof unlockNextModuleSchema>,
 ): Promise<
@@ -131,6 +105,12 @@ export async function unlockNextModuleAction(
     if (currentIndex === -1) {
       return { ok: false, error: "Modul tidak ditemukan pada track ini." };
     }
+    if (list[currentIndex]?.status === "locked") {
+      return {
+        ok: false,
+        error: "Modul terkunci tidak dapat diselesaikan secara langsung.",
+      };
+    }
 
     const { error: completeError } = await supabase
       .from("track_modules")
@@ -163,11 +143,15 @@ export async function unlockNextModuleAction(
     );
 
     if (allCompleted) {
-      await supabase
+      const { error: trackCompleteError } = await supabase
         .from("learning_tracks")
         .update({ status: "completed" })
         .eq("id", parsed.trackId)
         .eq("user_id", user.id);
+
+      if (trackCompleteError) {
+        return { ok: false, error: trackCompleteError.message };
+      }
     }
 
     revalidatePath("/tracks");

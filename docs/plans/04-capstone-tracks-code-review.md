@@ -125,20 +125,20 @@ feat(modules): add inline-blank warmup drill runner and progressive hints ticket
 - `src/components/tracks/ModuleTabs.tsx` *(modifikasi: sambungkan Tab 4)*
 
 ### Tugas
-- [ ] Bangun `src/lib/diff-sanitizer.ts` dengan TDD (`diff-sanitizer.test.ts`): parsing/penyaringan blok diff agar membuang *lockfile* (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`), file binary/gambar, serta memangkas total panjang teks menjadi **maks. 12.000 karakter** dengan penanda pemotongan yang jelas.
-- [ ] Tambahkan `fetchSanitizedCommitDiff(commitUrl, adapter?)` di `src/services/external/github.ts` untuk mengambil diff dari URL commit GitHub (timeout 4 detik) lalu menyaringnya dengan `diff-sanitizer.ts`.
-- [ ] Bangun *deep module* `src/services/ai/code-reviewer.ts` (`reviewLabSubmission(input, aiAdapter?)`) beserta unit test `code-reviewer.test.ts`: mengevaluasi kode/diff terhadap daftar *Acceptance Criteria* modul, mengeluarkan `{ passed, criteria_met[], improvements[], summary }`, dan merumuskan **tepat 2 pertanyaan wawancara spesifik** dari kode yang ditulis pengguna.
-- [ ] Buat Route Handler tipis `src/app/api/labs/review/route.ts` (`export const maxDuration = 30`):
+- [x] Bangun `src/lib/diff-sanitizer.ts` dengan TDD (`diff-sanitizer.test.ts`): parsing/penyaringan blok diff agar membuang *lockfile* (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`), file binary/gambar, serta memangkas total panjang teks menjadi **maks. 12.000 karakter** dengan penanda pemotongan yang jelas.
+- [x] Tambahkan `fetchSanitizedCommitDiff(commitUrl, adapter?)` di `src/services/external/github.ts` untuk mengambil diff dari URL commit GitHub (timeout 4 detik) lalu menyaringnya dengan `diff-sanitizer.ts`.
+- [x] Bangun *deep module* `src/services/ai/code-reviewer.ts` (`reviewLabSubmission(input, aiAdapter?)`) beserta unit test `code-reviewer.test.ts`: mengevaluasi kode/diff terhadap daftar *Acceptance Criteria* modul, mengeluarkan `{ passed, criteria_met[], improvements[], summary }`, dan merumuskan **tepat 2 pertanyaan wawancara spesifik** dari kode yang ditulis pengguna.
+- [x] Buat Route Handler tipis `src/app/api/labs/review/route.ts` (`export const maxDuration = 30`):
   - Verifikasi `requireAllowedUser`, ambil diff bila input berupa `repo_commit_url` atau sanitasi potongan kode (`<textarea>` monospace).
   - Panggil `reviewLabSubmission`, simpan ke `lab_submissions`.
   - **Otomatis sisipkan 2 baris baru ke `interview_cards`** (`source = 'lab_review'`, `lab_submission_id` terisi, `next_review_at = NOW()`).
   - Jika `passed = true`, ubah status modul menjadi `completed` (dan buka kunci modul berikutnya) serta hitung ulang `MasteryScore` & `SkillStatus` via `src/lib/mastery.ts`.
-- [ ] Bangun `src/components/tracks/CodeReviewPanel.tsx` (pilihan input potongan kode `<textarea>` monospace atau URL commit GitHub, tampilan hasil *Acceptance Criteria*, catatan perbaikan, daftar 2 pertanyaan interview baru, dan riwayat `LabSubmission`).
+- [x] Bangun `src/components/tracks/CodeReviewPanel.tsx` (pilihan input potongan kode `<textarea>` monospace atau URL commit GitHub, tampilan hasil *Acceptance Criteria*, catatan perbaikan, daftar 2 pertanyaan interview baru, dan riwayat `LabSubmission`).
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`diff-sanitizer.test.ts` & `code-reviewer.test.ts` hijau).
-- [ ] `npm run build` lulus.
-- [ ] Verifikasi lokal: submit potongan kode atau commit URL di Tab 4, pastikan `lab_submissions` tersimpan, `MasteryScore` skill meningkat, dan 2 `InterviewCard` baru muncul untuk skill tersebut.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`diff-sanitizer.test.ts` & `code-reviewer.test.ts` hijau).
+- [x] `npm run build` lulus.
+- [x] Verifikasi lokal: submit potongan kode atau commit URL di Tab 4, pastikan `lab_submissions` tersimpan, `MasteryScore` skill meningkat, dan 2 `InterviewCard` baru muncul untuk skill tersebut.
 
 ### Saran Conventional Commit
 ```text
@@ -152,3 +152,4 @@ feat(labs): add diff sanitizer, ai code review endpoint, and auto interview card
 - **2026-11-26 — Step 4.1 (Selesai & Di-commit):** *Deep service* Stage-1 `src/services/ai/track-generator.ts` + `track-generator.test.ts` (4/4 lulus, total 58/58 test hijau), endpoint `POST /api/tracks/generate` (`maxDuration = 30`), `src/actions/tracks.ts`, `TrackBlueprintControls.tsx`, serta halaman `/tracks` dan `/tracks/[id]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test`, dan `npm run build`.
 - **2026-11-26 — Step 4.2 (Selesai & Di-commit):** *Deep service* Stage-2 `src/services/ai/module-generator.ts` + `module-generator.test.ts` (3/3 lulus, total 61/61 test hijau), endpoint *on-demand* `POST /api/tracks/[id]/modules/[moduleId]/generate` (`maxDuration = 30`, idempoten + *Hybrid Sourcing* cache 7 hari), serta `ModuleTabs.tsx` (Tab 1 *Concept Brief* + *Save to Note* + tombol *Coba Generate Ulang*) dan `/tracks/[id]/modules/[moduleId]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test`, dan `npm run build`.
 - **2026-11-26 — Step 4.3 (Selesai & Di-commit):** `InlineBlankDrillRunner.tsx` (*syntax highlight* ringan tanpa Monaco/CodeMirror + inline `<input>` navigasi `Tab` + `submitQuizAttemptAction` `module_drill`), `ProgressiveHints.tsx` (3 tingkat berjenjang), serta integrasi Tab 2 & Tab 3 di `ModuleTabs.tsx`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (61/61), dan `npm run build`.
+- **2026-11-27 — Step 4.4 (Selesai & Di-commit):** `src/lib/diff-sanitizer.ts` (TDD, filter lockfile/binary, cap 12.000 karakter), `fetchSanitizedCommitDiff` di `github.ts`, `src/services/ai/code-reviewer.ts` + test, `POST /api/labs/review` (`lab_submissions`, 2 `interview_cards` `lab_review`, unlock modul, update `MasteryScore`), serta `CodeReviewPanel.tsx` di Tab 4 `ModuleTabs.tsx`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (13 file, 71/71), dan `npm run build`.

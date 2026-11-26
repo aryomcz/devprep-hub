@@ -27,6 +27,12 @@ import { Textarea } from "@/components/ui/textarea";
 import type { SkillStatus } from "@/types/database";
 import type { AiReviewFeedback } from "@/types/schemas";
 
+const SKILL_STATUS_LABELS: Record<SkillStatus, string> = {
+  gap: "Gap",
+  learning: "Learning",
+  mastered: "Mastered",
+};
+
 export type LabSubmissionHistoryItem = {
   id: string;
   repo_commit_url: string;
@@ -266,7 +272,7 @@ export function CodeReviewPanel({
 
               <Badge variant="default">
                 Mastery {skillName}: {latestResult.masteryScore}% (
-                {latestResult.skillStatus})
+                {SKILL_STATUS_LABELS[latestResult.skillStatus]})
               </Badge>
             </div>
             <CardDescription>{latestResult.feedback.summary}</CardDescription>
@@ -326,7 +332,9 @@ export function CodeReviewPanel({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="flex items-center gap-1.5 font-semibold">
                   <MessageSquare className="size-3.5" />
-                  <span>2 Kartu Interview Baru Ditambahkan (lab_review)</span>
+                  <span>
+                    2 Kartu Interview Baru Ditambahkan (Hasil Lab Review)
+                  </span>
                 </span>
                 <Link href="/interview">
                   <Button variant="outline" size="xs">
@@ -355,7 +363,7 @@ export function CodeReviewPanel({
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">
-            Riwayat LabSubmission ({initialSubmissions.length})
+            Riwayat Lab Submission ({initialSubmissions.length})
           </CardTitle>
         </CardHeader>
         <CardContent>

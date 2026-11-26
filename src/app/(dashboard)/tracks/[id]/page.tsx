@@ -101,11 +101,7 @@ async function TrackDetailLoader({
           </Button>
         </Link>
 
-        <TrackStatusBar
-          trackId={track.id}
-          status={track.status}
-          redirectAfterDelete
-        />
+        <TrackStatusBar trackId={track.id} status={track.status} />
       </div>
 
       <Card>

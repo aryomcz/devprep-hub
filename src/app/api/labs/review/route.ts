@@ -23,8 +23,12 @@ const reviewRequestSchema = z
   .object({
     trackId: z.uuid("ID track tidak valid."),
     moduleId: z.uuid("ID modul tidak valid."),
-    codeSnippet: z.string().optional().default(""),
-    repoCommitUrl: z.string().trim().optional().default(""),
+    codeSnippet: z
+      .string()
+      .max(50_000, "Potongan kode melebihi batas 50.000 karakter.")
+      .optional()
+      .default(""),
+    repoCommitUrl: z.string().trim().max(500).optional().default(""),
   })
   .refine(
     (data) =>
@@ -64,7 +68,7 @@ export async function POST(request: NextRequest) {
       supabase
         .from("track_modules")
         .select(
-          "id, track_id, skill_id, order_index, target_language, objective, hands_on_ticket, status",
+          "id, track_id, skill_id, order_index, target_language, objective, hands_on_ticket, content_status, status",
         )
         .eq("id", moduleId)
         .eq("track_id", trackId)
@@ -87,6 +91,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Track atau modul tidak ditemukan." },
         { status: 404 },
+      );
+    }
+
+    if (mod.status === "locked") {
+      return NextResponse.json(
+        {
+          error:
+            "Modul masih terkunci. Selesaikan modul sebelumnya terlebih dahulu.",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (mod.content_status !== "ready") {
+      return NextResponse.json(
+        {
+          error:
+            "Materi & Acceptance Criteria modul belum siap. Buka tab Concept Brief terlebih dahulu.",
+        },
+        { status: 400 },
       );
     }
 
@@ -134,7 +158,6 @@ export async function POST(request: NextRequest) {
       objective: mod.objective,
       acceptanceCriteria,
       submittedCodeOrDiff: sanitized.sanitizedText,
-      truncated: sanitized.truncated,
       skippedFiles: sanitized.skippedFiles,
     });
 
@@ -154,7 +177,7 @@ export async function POST(request: NextRequest) {
 
     if (subError || !submission) {
       return NextResponse.json(
-        { error: subError?.message ?? "Gagal menyimpan LabSubmission." },
+        { error: subError?.message ?? "Gagal menyimpan Lab Submission." },
         { status: 500 },
       );
     }
@@ -174,22 +197,45 @@ export async function POST(request: NextRequest) {
       .insert(interviewCardRows);
 
     if (cardError) {
-      return NextResponse.json({ error: cardError.message }, { status: 500 });
+      await supabase
+        .from("lab_submissions")
+        .delete()
+        .eq("id", submission.id)
+        .eq("user_id", user.id);
+
+      return NextResponse.json(
+        { error: "Gagal membuat Interview Card dari hasil review." },
+        { status: 500 },
+      );
     }
 
     let unlockedModuleId: string | null = null;
     if (review.passed) {
-      await supabase
+      const { error: completeError } = await supabase
         .from("track_modules")
         .update({ status: "completed" })
         .eq("id", moduleId)
         .eq("track_id", trackId);
 
-      const { data: trackModules } = await supabase
+      if (completeError) {
+        return NextResponse.json(
+          { error: "Gagal memperbarui status kelulusan modul." },
+          { status: 500 },
+        );
+      }
+
+      const { data: trackModules, error: trackModulesError } = await supabase
         .from("track_modules")
         .select("id, order_index, status")
         .eq("track_id", trackId)
         .order("order_index", { ascending: true });
+
+      if (trackModulesError) {
+        return NextResponse.json(
+          { error: "Gagal membaca urutan modul track." },
+          { status: 500 },
+        );
+      }
 
       const list = trackModules ?? [];
       const currentIdx = list.findIndex((item) => item.id === moduleId);
@@ -198,11 +244,18 @@ export async function POST(request: NextRequest) {
       );
 
       if (nextLocked) {
-        await supabase
+        const { error: unlockError } = await supabase
           .from("track_modules")
           .update({ status: "in_progress" })
           .eq("id", nextLocked.id)
           .eq("track_id", trackId);
+
+        if (unlockError) {
+          return NextResponse.json(
+            { error: "Gagal membuka modul berikutnya." },
+            { status: 500 },
+          );
+        }
         unlockedModuleId = nextLocked.id;
       }
 
@@ -210,11 +263,18 @@ export async function POST(request: NextRequest) {
         (item) => item.id === moduleId || item.status === "completed",
       );
       if (allCompleted) {
-        await supabase
+        const { error: trackDoneError } = await supabase
           .from("learning_tracks")
           .update({ status: "completed" })
           .eq("id", trackId)
           .eq("user_id", user.id);
+
+        if (trackDoneError) {
+          return NextResponse.json(
+            { error: "Gagal memperbarui status penyelesaian track." },
+            { status: 500 },
+          );
+        }
       }
     }
 
@@ -240,6 +300,15 @@ export async function POST(request: NextRequest) {
         .limit(1),
     ]);
 
+    const signalError =
+      quizzesRes.error ?? labsRes.error ?? interviewsRes.error;
+    if (signalError) {
+      return NextResponse.json(
+        { error: "Gagal menghitung sinyal Mastery Score skill." },
+        { status: 500 },
+      );
+    }
+
     const quizScores = (quizzesRes.data ?? []).map((row) => row.score);
     const labRows = labsRes.data ?? [];
     const breakdown = calculateMasteryBreakdown({
@@ -250,7 +319,7 @@ export async function POST(request: NextRequest) {
       latestConfidence: interviewsRes.data?.[0]?.confidence_level ?? null,
     });
 
-    await supabase
+    const { error: skillUpdateError } = await supabase
       .from("skills")
       .update({
         mastery_score: breakdown.masteryScore,
@@ -259,6 +328,13 @@ export async function POST(request: NextRequest) {
       })
       .eq("id", skill.id)
       .eq("user_id", user.id);
+
+    if (skillUpdateError) {
+      return NextResponse.json(
+        { error: "Gagal menyimpan pembaruan Mastery Score skill." },
+        { status: 500 },
+      );
+    }
 
     revalidatePath("/tracks");
     revalidatePath(`/tracks/${trackId}`);

@@ -136,9 +136,12 @@ function inferCategory(slug: string, fromRepoLanguage: boolean): SkillCategory {
   return fromRepoLanguage ? "language" : "tool";
 }
 
-function buildGithubHeaders(token?: string): HeadersInit {
+function buildGithubHeaders(
+  token?: string,
+  accept = "application/vnd.github+json",
+): HeadersInit {
   const headers: Record<string, string> = {
-    Accept: "application/vnd.github+json",
+    Accept: accept,
     "User-Agent": "dev-prep-hub",
   };
   if (token?.trim()) {
@@ -303,13 +306,7 @@ export async function fetchSanitizedCommitDiff(
 
   const [, owner, repo, sha] = match;
   const fetchFn = options.fetchFn ?? fetch;
-  const headers: Record<string, string> = {
-    Accept: "application/vnd.github.v3.diff",
-    "User-Agent": "dev-prep-hub",
-  };
-  if (options.token?.trim()) {
-    headers.Authorization = `Bearer ${options.token.trim()}`;
-  }
+  const headers = buildGithubHeaders(options.token, "application/vnd.github.v3.diff");
 
   const res = await fetchFn(
     `${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits/${encodeURIComponent(sha)}`,

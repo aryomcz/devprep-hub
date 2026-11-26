@@ -138,6 +138,57 @@ describe("generateTrackBlueprint", () => {
     expect(result.modules[0]?.module_type).toBe("microservice");
   });
 
+  it("does not misclassify C, Go, or Java as capstone_feature due to substring matches in TypeScript/Django/JavaScript", async () => {
+    const secondaryLanguages: TrackSkillCandidate[] = [
+      {
+        id: "44444444-4444-4444-8444-444444444444",
+        name: "C",
+        slug: "c",
+        category: "language",
+        status: "gap",
+      },
+      {
+        id: "55555555-5555-4555-8555-555555555555",
+        name: "Go",
+        slug: "go",
+        category: "language",
+        status: "gap",
+      },
+      {
+        id: "66666666-6666-4666-8666-666666666666",
+        name: "Java",
+        slug: "java",
+        category: "language",
+        status: "gap",
+      },
+    ];
+
+    const mockAi = vi.fn<GenerateBlueprintFn>(async () => ({
+      capstone_title: "Polyglot Hub",
+      capstone_description: "Hub layanan multi-bahasa.",
+      primary_stack: "TypeScript + Django + JavaScript",
+      architecture_overview: "Monolith TS + worker C/Go/Java.",
+      modules: secondaryLanguages.map((skill, idx) => ({
+        skill_slug: skill.slug,
+        order_index: idx + 1,
+        module_type: "capstone_feature",
+        target_language: skill.name,
+        objective: `Bangun modul ${skill.name}.`,
+      })),
+    }));
+
+    const result = await generateTrackBlueprint(
+      { skills: secondaryLanguages, languageMode: "language_native" },
+      mockAi,
+    );
+
+    expect(result.modules.map((m) => m.module_type)).toEqual([
+      "language_native",
+      "language_native",
+      "language_native",
+    ]);
+  });
+
   it("propagates GeminiRateLimitError on HTTP 429", async () => {
     const mockAi = vi.fn<GenerateBlueprintFn>(async () => {
       throw new GeminiRateLimitError();

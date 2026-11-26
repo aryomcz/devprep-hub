@@ -13,7 +13,6 @@ export type LabReviewInput = {
   objective: string;
   acceptanceCriteria: string[];
   submittedCodeOrDiff: string;
-  truncated?: boolean;
   skippedFiles?: string[];
 };
 
@@ -85,7 +84,6 @@ export async function reviewLabSubmission(
   const prompt = buildReviewPrompt(
     {
       ...input,
-      truncated: input.truncated ?? sanitized.truncated,
       skippedFiles:
         input.skippedFiles && input.skippedFiles.length > 0
           ? input.skippedFiles

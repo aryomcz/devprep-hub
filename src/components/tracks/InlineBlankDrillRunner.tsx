@@ -251,8 +251,7 @@ export function InlineBlankDrillRunner({
             </Badge>
           </div>
           <p className="text-muted-foreground">
-            Tercatat sebagai{" "}
-            <code className="font-mono">module_drill</code> di riwayat kuis.
+            Tercatat sebagai Warm-up Drill di riwayat kuis.
             {summary.capped
               ? " Skor dibatasi maks. 65% sampai Anda menyelesaikan sinyal Lab atau Interview."
               : ""}

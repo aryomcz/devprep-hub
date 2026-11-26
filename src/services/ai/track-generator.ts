@@ -2,6 +2,7 @@ import { z } from "zod";
 import { generateStructuredJson } from "@/lib/gemini";
 import { normalizeSkill } from "@/lib/skill-normalizer";
 import type {
+  LanguageSkillMode,
   ModuleType,
   SkillCategory,
   SkillPriority,
@@ -9,7 +10,7 @@ import type {
 } from "@/types/database";
 import { moduleTypeSchema } from "@/types/schemas";
 
-export type LanguageSkillMode = "microservice" | "language_native";
+export type { LanguageSkillMode };
 
 export type TrackSkillCandidate = {
   id: string;
@@ -102,12 +103,16 @@ function classifyModuleType(
     return "capstone_feature";
   }
 
-  const stackLower = primaryStack.toLowerCase();
-  const matchesPrimary =
-    stackLower.includes(skill.name.toLowerCase()) ||
-    stackLower.includes(skill.slug.toLowerCase());
+  const stackTokenSlugs = new Set(
+    primaryStack
+      .split(/[\s+,/|&()]+/)
+      .map((token) => normalizeSkill(token).slug)
+      .filter(Boolean),
+  );
 
-  return matchesPrimary ? "capstone_feature" : languageMode;
+  return stackTokenSlugs.has(skill.slug.toLowerCase())
+    ? "capstone_feature"
+    : languageMode;
 }
 
 function buildBlueprintPrompt(

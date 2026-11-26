@@ -4,7 +4,9 @@ import {
   fetchMdnResources,
   fetchWikipediaResources,
 } from "@/services/external/wikipedia";
-import type { ResourceSource } from "@/types/database";
+import type { CachedCuratedResource, ResourceSource } from "@/types/database";
+
+export type { CachedCuratedResource };
 
 export const RESOURCE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -13,12 +15,6 @@ export type SourcedResourceItem = {
   title: string;
   url: string;
   summary: string;
-};
-
-export type CachedCuratedResource = SourcedResourceItem & {
-  id?: string;
-  skill_id: string;
-  fetched_at: string;
 };
 
 export type CuratedResourceStoreAdapter = {

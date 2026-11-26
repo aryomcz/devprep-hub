@@ -6,12 +6,10 @@ import {
   Plus,
   RefreshCw,
   Rocket,
-  Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import {
-  deleteTrackAction,
   unlockNextModuleAction,
   updateTrackStatusAction,
 } from "@/actions/tracks";
@@ -33,8 +31,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { LanguageSkillMode } from "@/services/ai/track-generator";
-import type { SkillCategory, SkillStatus, TrackStatus } from "@/types/database";
+import type {
+  LanguageSkillMode,
+  SkillCategory,
+  SkillStatus,
+  TrackStatus,
+} from "@/types/database";
 
 export type InternshipOption = {
   id: string;
@@ -116,7 +118,7 @@ export function TrackGeneratorDialog({
 
   async function runGenerate() {
     if (sourceMode === "internship" && !selectedInternshipId) {
-      setErrorMessage("Pilih Target Internship terlebih dahulu.");
+      setErrorMessage("Pilih Target Magang terlebih dahulu.");
       return;
     }
     if (sourceMode === "skills" && selectedSkillIds.length === 0) {
@@ -234,10 +236,10 @@ export function TrackGeneratorDialog({
             </TabsList>
 
             <TabsContent value="internship" className="mt-3 space-y-2">
-              <label className="text-xs font-medium">Target Internship</label>
+              <label className="text-xs font-medium">Target Magang</label>
               {internships.length === 0 ? (
                 <p className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
-                  Belum ada Target Internship. Gunakan tab Pilih Skill Manual
+                  Belum ada Target Magang. Gunakan tab Pilih Skill Manual
                   atau analisis lowongan di /internships.
                 </p>
               ) : (
@@ -353,11 +355,9 @@ export function TrackGeneratorDialog({
 export function TrackStatusBar({
   trackId,
   status,
-  redirectAfterDelete = false,
 }: {
   trackId: string;
   status: TrackStatus;
-  redirectAfterDelete?: boolean;
 }) {
   const router = useRouter();
   const [currentStatus, setCurrentStatus] = useState<TrackStatus>(status);
@@ -387,53 +387,24 @@ export function TrackStatusBar({
     });
   }
 
-  function handleDelete() {
-    setErrorMessage(null);
-    startTransition(async () => {
-      const result = await deleteTrackAction(trackId);
-      if (!result.ok) {
-        setErrorMessage(result.error);
-        return;
-      }
-      if (redirectAfterDelete) {
-        router.push("/tracks");
-      }
-      router.refresh();
-    });
-  }
-
   return (
     <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <Select
-          value={currentStatus}
-          onValueChange={handleStatusChange}
-          disabled={isPending}
-        >
-          <SelectTrigger className="h-8 w-36 text-xs">
-            <SelectValue>{TRACK_STATUS_LABELS[currentStatus]}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {TRACK_STATUS_OPTIONS.map((option) => (
-              <SelectItem key={option} value={option}>
-                {TRACK_STATUS_LABELS[option]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          disabled={isPending}
-          aria-label="Hapus Learning Track"
-          onClick={handleDelete}
-          className="text-muted-foreground hover:text-destructive"
-        >
-          <Trash2 className="size-3.5" />
-        </Button>
-      </div>
+      <Select
+        value={currentStatus}
+        onValueChange={handleStatusChange}
+        disabled={isPending}
+      >
+        <SelectTrigger className="h-8 w-36 text-xs">
+          <SelectValue>{TRACK_STATUS_LABELS[currentStatus]}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {TRACK_STATUS_OPTIONS.map((option) => (
+            <SelectItem key={option} value={option}>
+              {TRACK_STATUS_LABELS[option]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       {errorMessage ? (
         <p className="text-[11px] text-destructive">{errorMessage}</p>
       ) : null}

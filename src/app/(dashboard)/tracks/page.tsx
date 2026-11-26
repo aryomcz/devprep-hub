@@ -48,7 +48,7 @@ async function TracksContent({
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
-    supabase.from("track_modules").select("id, track_id, status, content_status"),
+    supabase.from("track_modules").select("id, track_id, status"),
     supabase
       .from("target_internships")
       .select("id, title, company_name")
@@ -62,10 +62,7 @@ async function TracksContent({
   ]);
 
   const tracks = tracksRes.data ?? [];
-  const modulesByTrack = new Map<
-    string,
-    Array<{ status: string; content_status: string }>
-  >();
+  const modulesByTrack = new Map<string, Array<{ status: string }>>();
 
   for (const mod of modulesRes.data ?? []) {
     const list = modulesByTrack.get(mod.track_id) ?? [];
