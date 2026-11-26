@@ -28,6 +28,7 @@ import {
   deleteNoteAction,
   updateNoteAction,
 } from "@/actions/notes";
+import { QuickLookupDrawer } from "@/components/notes/QuickLookupDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -590,6 +591,13 @@ export function MarkdownEditor({
     });
   }
 
+  function handleInsertLookupSnippet(snippet: string) {
+    setContentMd((prev) =>
+      prev.trim() ? `${prev.trimEnd()}\n\n${snippet}` : snippet,
+    );
+    setStatusMessage("Referensi disisipkan ke editor (jangan lupa Simpan).");
+  }
+
   function handleSave() {
     setErrorMessage(null);
     setStatusMessage(null);
@@ -639,6 +647,8 @@ export function MarkdownEditor({
 
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary">{parsedCloze.clozeCount} Soal Cloze</Badge>
+
+          <QuickLookupDrawer onInsertSnippet={handleInsertLookupSnippet} />
 
           <Link href={`/quiz?noteId=${note.id}`}>
             <Button variant="outline" size="sm" className="gap-1.5">

@@ -50,20 +50,20 @@ feat(cloze): implement state-aware markdown cloze parser with code block safety
 - `src/app/(dashboard)/notes/[id]/page.tsx` *(baru)*
 
 ### Tugas
-- [ ] Buat `src/actions/notes.ts` (semua tervalidasi Zod & `requireAllowedUser` via RLS):
+- [x] Buat `src/actions/notes.ts` (semua tervalidasi Zod & `requireAllowedUser` via RLS):
   - `createNoteAction`, `updateNoteAction`, `deleteNoteAction`.
   - `saveToNoteAction({ title, term, definition, sourceLabel, skillId? })`: membuat atau menambahkan bagian catatan baru dengan format `{{term}}` siap pakai untuk kuis *cloze* dan mengembalikan `noteId` untuk navigasi cepat.
-- [ ] Bangun halaman `/notes` yang menampilkan daftar `Note` dikelompokkan berdasarkan `Skill`, filter pencarian judul/skill, dan indikator jumlah soal `ClozeItem` hasil `parseClozeMarkdown`.
-- [ ] Bangun `src/components/notes/MarkdownEditor.tsx` sesuai `ADR-009` (tanpa Monaco/CodeMirror):
+- [x] Bangun halaman `/notes` yang menampilkan daftar `Note` dikelompokkan berdasarkan `Skill`, filter pencarian judul/skill, dan indikator jumlah soal `ClozeItem` hasil `parseClozeMarkdown`.
+- [x] Bangun `src/components/notes/MarkdownEditor.tsx` sesuai `ADR-009` (tanpa Monaco/CodeMirror):
   - `<textarea>` monospace terkontrol yang mendeteksi posisi seleksi teks.
   - Tombol toolbar **"Jadikan Cloze `{{...}}`"** dan **"Cloze Kode `{{cloze:...}}`"** untuk membungkus teks terseleksi secara instan.
   - Panel *live preview* Markdown bersih (dengan highlight visual pada bagian *cloze*) + tombol **Simpan**, **Mulai Kuis Cloze**, dan **Export A4**.
-- [ ] Bangun `/notes/[id]/page.tsx` untuk memuat catatan berdasarkan `id`, mengubah tautan `skill_id`, dan menghubungkan `MarkdownEditor`.
+- [x] Bangun `/notes/[id]/page.tsx` untuk memuat catatan berdasarkan `id`, mengubah tautan `skill_id`, dan menghubungkan `MarkdownEditor`.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
-- [ ] `npm run build` lulus.
-- [ ] Verifikasi lokal: buat catatan baru, pilih kata lalu klik tombol Cloze toolbar, simpan, pastikan jumlah soal Cloze di `/notes` bertambah sesuai hasil parser.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
+- [x] `npm run build` lulus.
+- [x] Verifikasi lokal: buat catatan baru, pilih kata lalu klik tombol Cloze toolbar, simpan, pastikan jumlah soal Cloze di `/notes` bertambah sesuai hasil parser.
 
 ### Saran Conventional Commit
 ```text
@@ -139,3 +139,4 @@ feat(quiz): add cloze quiz runner, mastery score update, and A4 print view
 ## Handoff Log
 
 - **2026-11-26 — Step 2.1 (Selesai & Di-commit):** Parser *state-aware* `src/lib/cloze-parser.ts` (`parseClozeMarkdown`, `evaluateClozeAnswer`) beserta `src/lib/__tests__/cloze-parser.test.ts` (7/7 lulus, total 43/43 test hijau). Lulus `npm test`, `npx tsc --noEmit`, dan `npm run lint` tanpa dependensi eksternal.
+- **2026-11-26 — Step 2.2 (Selesai & Di-commit):** `src/actions/notes.ts` (CRUD + `saveToNoteAction`), `MarkdownEditor.tsx` (`NotesDirectory` & `MarkdownEditor` berbasis `<Textarea>` monospace + Cloze toolbar + *Live Preview*), `/notes`, dan `/notes/[id]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (43/43), `npm run build`, serta uji browser dengan catatan CSS Flexbox & Gridbox.
