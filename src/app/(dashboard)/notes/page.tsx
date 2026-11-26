@@ -46,7 +46,7 @@ export default function NotesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Smart Notes &amp; Cheat-Sheet"
+        title="Smart Notes & Cheat-Sheet"
         description="Catatan Markdown pribadi per skill dengan sintaks Cloze {{...}} dan {{cloze:...}} untuk kuis active recall serta cetak A4."
       />
 
