@@ -18,17 +18,17 @@
 - `src/services/ai/__tests__/jd-analyzer.test.ts` *(baru)*
 
 ### Tugas
-- [ ] Buat *thin factory* `src/lib/gemini.ts`: baca `GEMINI_API_KEY` hanya di server, bungkus pemanggilan Gemini REST API (`generateStructuredJson<T>({ prompt, jsonSchema, schema, timeoutMs })`) dengan validasi output Zod, deteksi eksplisit *rate limit* (`429` → error terstruktur `GeminiRateLimitError`), dan maks. 1 *retry* ringan untuk kegagalan sementara.
-- [ ] Bangun `src/services/ai/jd-analyzer.ts` (`analyzeInternshipInput(input, existingSkills, generateFn?)`):
+- [x] Buat *thin factory* `src/lib/gemini.ts`: baca `GEMINI_API_KEY` hanya di server, bungkus pemanggilan Gemini REST API (`generateStructuredJson<T>({ prompt, jsonSchema, schema, timeoutMs })`) dengan validasi output Zod, deteksi eksplisit *rate limit* (`429` → error terstruktur `GeminiRateLimitError`), dan maks. 1 *retry* ringan untuk kegagalan sementara.
+- [x] Bangun `src/services/ai/jd-analyzer.ts` (`analyzeInternshipInput(input, existingSkills, generateFn?)`):
   - Terima 3 mode input (`raw_jd`, `manual_skills`, `role_industry`) dan tegakkan batas **maks. 15.000 karakter** pada teks JD mentah.
   - Injeksikan daftar `{ slug, name }` `Skill` eksisting pengguna ke dalam prompt (Lapis 2 deduplikasi `ADR-007`).
   - Instruksikan prompt untuk **hanya mengekstrak hard engineering skills** (`language | framework | concept | tool`) dan membuang *soft skills* HR (*"team player"*, *"good communication"*, dll.).
   - Jalankan `src/lib/skill-normalizer.ts` (Lapis 1) pada seluruh skill hasil ekstraksi untuk mencegah duplikasi (`Postgres` → `PostgreSQL`) dan gabungkan tabrakan `must_have` vs `nice_to_have` (prioritas lebih tinggi menang).
-- [ ] Tulis `src/services/ai/__tests__/jd-analyzer.test.ts` dengan mock `generateFn` pada *seam* argumen untuk menguji: penolakan input >15.000 karakter, pemetaan ke skill eksisting, deduplikasi alias hasil AI, dan propagasi `GeminiRateLimitError`.
+- [x] Tulis `src/services/ai/__tests__/jd-analyzer.test.ts` dengan mock `generateFn` pada *seam* argumen untuk menguji: penolakan input >15.000 karakter, pemetaan ke skill eksisting, deduplikasi alias hasil AI, dan propagasi `GeminiRateLimitError`.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`jd-analyzer.test.ts` hijau tanpa API key asli).
-- [ ] Cek keamanan: `GEMINI_API_KEY` hanya direferensikan di `src/lib/gemini.ts` (server-only) dan tidak ada import Next.js di `src/services/ai/jd-analyzer.ts`.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`jd-analyzer.test.ts` hijau tanpa API key asli).
+- [x] Cek keamanan: `GEMINI_API_KEY` hanya direferensikan di `src/lib/gemini.ts` (server-only) dan tidak ada import Next.js di `src/services/ai/jd-analyzer.ts`.
 
 ### Saran Conventional Commit
 ```text
@@ -132,4 +132,4 @@ feat(digest): add daily engineering digest cron endpoint and digest archive page
 
 ## Handoff Log
 
-*(Kosong — akan diisi setelah setiap sub-step dikonfirmasi lulus verifikasi)*
+- **2026-11-26 — Step 3.1 (Selesai & Di-commit):** Wrapper server-only `src/lib/gemini.ts` (Structured JSON Output, `GeminiRateLimitError` 429, maks. 1 *retry* ringan) serta *deep service* `src/services/ai/jd-analyzer.ts` + `jd-analyzer.test.ts` (4/4 test lulus, total 50/50 hijau). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
