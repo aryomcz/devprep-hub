@@ -105,4 +105,4 @@ feat(dashboard): add deterministic todays focus card, mastery analytics, and fin
 
 ## Handoff Log
 
-*(Kosong — akan diisi setelah setiap sub-step dikonfirmasi lulus verifikasi)*
+- **2026-11-27 — Step 5.1 (Selesai & Di-commit):** Modul murni `src/lib/spaced-repetition.ts` + `spaced-repetition.test.ts` (3/3 lulus, total 75/75 test hijau) dan Server Actions `src/actions/interview.ts` (`createInterviewCardAction` & `submitInterviewAttemptAction`). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
