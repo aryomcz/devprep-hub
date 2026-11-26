@@ -89,18 +89,18 @@ feat(modules): add on-demand module content generator and concept brief tab
 - `src/components/tracks/ModuleTabs.tsx` *(modifikasi: sambungkan Tab 2 & Tab 3)*
 
 ### Tugas
-- [ ] Bangun `src/components/tracks/InlineBlankDrillRunner.tsx` (tanpa Monaco/CodeMirror sesuai `ADR-009`):
+- [x] Bangun `src/components/tracks/InlineBlankDrillRunner.tsx` (tanpa Monaco/CodeMirror sesuai `ADR-009`):
   - Render potongan kode *read-only* dengan pewarnaan sintaks ringan dan sisipkan `<input>` *inline* monospace langsung di posisi token `___BLANK_1___` dst.
   - Dukung navigasi tombol `Tab` berurutan antar input slot, umpan balik benar/salah per slot, serta pengiriman skor akhir melalui `submitQuizAttemptAction` (`sourceType: 'module_drill'`) agar `MasteryScore` `Skill` otomatis terbarui.
-- [ ] Bangun `src/components/tracks/ProgressiveHints.tsx`:
+- [x] Bangun `src/components/tracks/ProgressiveHints.tsx`:
   - Tampilkan konteks masalah dan daftar *Acceptance Criteria* terukur.
   - Sediakan 3 tombol berjenjang yang terbuka bertahap: **Level 1: Arsitektur** → **Level 2: Pseudocode** → **Level 3: Contoh Implementasi**.
-- [ ] Integrasikan `InlineBlankDrillRunner` (Tab 2) dan `ProgressiveHints` (Tab 3) ke `ModuleTabs.tsx`.
+- [x] Integrasikan `InlineBlankDrillRunner` (Tab 2) dan `ProgressiveHints` (Tab 3) ke `ModuleTabs.tsx`.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
-- [ ] `npm run build` lulus.
-- [ ] Verifikasi lokal: isi seluruh slot `<input>` *inline* di Tab 2 menggunakan tombol `Tab`, kirim jawaban, dan pastikan `quiz_attempts` bertambah dengan `source_type = 'module_drill'` serta `MasteryScore` terbarui.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
+- [x] `npm run build` lulus.
+- [x] Verifikasi lokal: isi seluruh slot `<input>` *inline* di Tab 2 menggunakan tombol `Tab`, kirim jawaban, dan pastikan `quiz_attempts` bertambah dengan `source_type = 'module_drill'` serta `MasteryScore` terbarui.
 
 ### Saran Conventional Commit
 ```text
@@ -151,3 +151,4 @@ feat(labs): add diff sanitizer, ai code review endpoint, and auto interview card
 
 - **2026-11-26 — Step 4.1 (Selesai & Di-commit):** *Deep service* Stage-1 `src/services/ai/track-generator.ts` + `track-generator.test.ts` (4/4 lulus, total 58/58 test hijau), endpoint `POST /api/tracks/generate` (`maxDuration = 30`), `src/actions/tracks.ts`, `TrackBlueprintControls.tsx`, serta halaman `/tracks` dan `/tracks/[id]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test`, dan `npm run build`.
 - **2026-11-26 — Step 4.2 (Selesai & Di-commit):** *Deep service* Stage-2 `src/services/ai/module-generator.ts` + `module-generator.test.ts` (3/3 lulus, total 61/61 test hijau), endpoint *on-demand* `POST /api/tracks/[id]/modules/[moduleId]/generate` (`maxDuration = 30`, idempoten + *Hybrid Sourcing* cache 7 hari), serta `ModuleTabs.tsx` (Tab 1 *Concept Brief* + *Save to Note* + tombol *Coba Generate Ulang*) dan `/tracks/[id]/modules/[moduleId]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test`, dan `npm run build`.
+- **2026-11-26 — Step 4.3 (Selesai & Di-commit):** `InlineBlankDrillRunner.tsx` (*syntax highlight* ringan tanpa Monaco/CodeMirror + inline `<input>` navigasi `Tab` + `submitQuizAttemptAction` `module_drill`), `ProgressiveHints.tsx` (3 tingkat berjenjang), serta integrasi Tab 2 & Tab 3 di `ModuleTabs.tsx`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (61/61), dan `npm run build`.
