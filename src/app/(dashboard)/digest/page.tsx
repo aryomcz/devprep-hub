@@ -20,9 +20,7 @@ async function DigestLoader() {
   const [digestsRes, skillsRes] = await Promise.all([
     supabase
       .from("daily_digests")
-      .select(
-        "id, source, title, url, tags, matched_skill_id, is_read, digest_date",
-      )
+      .select("id, source, title, url, matched_skill_id, is_read, digest_date")
       .eq("user_id", user.id)
       .order("digest_date", { ascending: false })
       .limit(40),

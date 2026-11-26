@@ -15,13 +15,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { TodaysFocusResult } from "@/lib/todays-focus";
+import type { TodaysFocus } from "@/lib/todays-focus";
 
 export function TodaysFocusCard({
   focus,
   counts,
 }: {
-  focus: TodaysFocusResult;
+  focus: TodaysFocus;
   counts: {
     dueInterviews: number;
     unreadDigests: number;

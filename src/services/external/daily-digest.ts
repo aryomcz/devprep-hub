@@ -1,5 +1,8 @@
 import { fetchDevToResources } from "@/services/external/devto";
-import { fetchHackerNewsTopStories } from "@/services/external/hackernews";
+import {
+  fetchHackerNewsTopStories,
+  isSafeHttpUrl,
+} from "@/services/external/hackernews";
 import type { DigestSource, SkillStatus } from "@/types/database";
 
 export type DigestSkillTarget = {
@@ -23,7 +26,7 @@ export type CuratedDigestEntry = {
   title: string;
   url: string;
   tags: string[];
-  matched_skill_id: string | null;
+  matched_skill_id: string;
 };
 
 export type DigestAdapters = {
@@ -31,23 +34,35 @@ export type DigestAdapters = {
   fetchHackerNews?: () => Promise<DigestCandidateArticle[]>;
 };
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function containsWholeTerm(haystack: string, term: string): boolean {
+  const trimmed = term.trim();
+  if (!trimmed) return false;
+  const pattern = new RegExp(
+    `(^|[^a-z0-9+#.])${escapeRegExp(trimmed)}([^a-z0-9+#.]|$)`,
+    "i",
+  );
+  return pattern.test(haystack);
+}
+
 function findMatchedSkill(
   article: DigestCandidateArticle,
   targetSkills: DigestSkillTarget[],
 ): DigestSkillTarget | null {
-  const titleLower = article.title.toLowerCase();
   const tagSet = new Set(article.tags.map((t) => t.toLowerCase()));
 
   for (const skill of targetSkills) {
     const slugLower = skill.slug.toLowerCase();
     const compactSlug = slugLower.replace(/-/g, "");
-    const nameLower = skill.name.toLowerCase();
 
     if (
       tagSet.has(slugLower) ||
       tagSet.has(compactSlug) ||
-      titleLower.includes(nameLower) ||
-      titleLower.includes(slugLower)
+      containsWholeTerm(article.title, skill.name) ||
+      containsWholeTerm(article.title, skill.slug)
     ) {
       return skill;
     }
@@ -59,9 +74,9 @@ export async function curateDailyDigestForUser(
   skills: DigestSkillTarget[],
   options: { adapters?: DigestAdapters; fetchFn?: typeof fetch; limit?: number } = {},
 ): Promise<CuratedDigestEntry[]> {
-  const targetSkills = skills.filter(
-    (skill) => skill.status === "gap" || skill.status === "learning",
-  );
+  const targetSkills = skills
+    .filter((skill) => skill.status === "gap" || skill.status === "learning")
+    .sort((a, b) => (a.status === b.status ? 0 : a.status === "gap" ? -1 : 1));
   if (targetSkills.length === 0) {
     return [];
   }
@@ -86,31 +101,32 @@ export async function curateDailyDigestForUser(
   for (const outcome of settled) {
     if (outcome.status !== "fulfilled") continue;
     for (const article of outcome.value) {
-      if (!article.url || candidatesByUrl.has(article.url)) continue;
+      if (
+        !article.url ||
+        !isSafeHttpUrl(article.url) ||
+        candidatesByUrl.has(article.url)
+      ) {
+        continue;
+      }
       candidatesByUrl.set(article.url, article);
     }
   }
 
   const matchedEntries: CuratedDigestEntry[] = [];
-  const unmatchedFallback: CuratedDigestEntry[] = [];
 
   for (const article of candidatesByUrl.values()) {
     const matched = findMatchedSkill(article, targetSkills);
-    const entry: CuratedDigestEntry = {
+    if (!matched) continue;
+
+    matchedEntries.push({
       source: article.source,
       external_id: article.externalId,
       title: article.title,
       url: article.url,
       tags: article.tags,
-      matched_skill_id: matched?.id ?? null,
-    };
-
-    if (matched) {
-      matchedEntries.push(entry);
-    } else {
-      unmatchedFallback.push(entry);
-    }
+      matched_skill_id: matched.id,
+    });
   }
 
-  return [...matchedEntries, ...unmatchedFallback].slice(0, limit);
+  return matchedEntries.slice(0, limit);
 }

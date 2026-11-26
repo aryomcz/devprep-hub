@@ -56,7 +56,7 @@ export async function createInterviewCardAction(
 
     const { data: skill, error: skillError } = await supabase
       .from("skills")
-      .select("id, name")
+      .select("id, name, status")
       .eq("id", parsed.skillId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -66,6 +66,12 @@ export async function createInterviewCardAction(
     }
     if (!skill) {
       return { ok: false, error: "Skill tidak ditemukan." };
+    }
+    if (parsed.source === "skill_gap" && skill.status !== "gap") {
+      return {
+        ok: false,
+        error: "Kartu Skill Gap hanya dapat dibuat untuk skill berstatus Gap.",
+      };
     }
 
     const questionPrompt =
@@ -113,7 +119,7 @@ export async function submitInterviewAttemptAction(
 
     const { data: card, error: cardError } = await supabase
       .from("interview_cards")
-      .select("id, skill_id, review_count")
+      .select("id, skill_id")
       .eq("id", parsed.cardId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -125,15 +131,32 @@ export async function submitInterviewAttemptAction(
       return { ok: false, error: "Kartu Interview tidak ditemukan." };
     }
 
-    const { data: skill, error: skillError } = await supabase
-      .from("skills")
-      .select("id, source")
-      .eq("id", card.skill_id)
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const [skillRes, quizzesRes, labsRes] = await Promise.all([
+      supabase
+        .from("skills")
+        .select("id, source")
+        .eq("id", card.skill_id)
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("quiz_attempts")
+        .select("score")
+        .eq("user_id", user.id)
+        .eq("skill_id", card.skill_id)
+        .order("attempted_at", { ascending: false })
+        .limit(3),
+      supabase
+        .from("lab_submissions")
+        .select("passed, track_modules!inner(skill_id)")
+        .eq("user_id", user.id)
+        .eq("track_modules.skill_id", card.skill_id),
+    ]);
 
-    if (skillError || !skill) {
+    if (skillRes.error || !skillRes.data) {
       return { ok: false, error: "Skill terkait kartu tidak ditemukan." };
+    }
+    if (quizzesRes.error || labsRes.error) {
+      return { ok: false, error: "Gagal membaca sinyal Mastery Score." };
     }
 
     const now = new Date();
@@ -143,95 +166,29 @@ export async function submitInterviewAttemptAction(
       now,
     ).toISOString();
 
-    const { data: attempt, error: attemptError } = await supabase
-      .from("interview_attempts")
-      .insert({
-        card_id: card.id,
-        user_id: user.id,
-        skill_id: skill.id,
-        user_notes: parsed.userNotes,
-        duration_seconds: parsed.durationSeconds,
-        confidence_level: parsed.confidenceLevel,
-        attempted_at: nowIso,
-      })
-      .select("id")
-      .single();
-
-    if (attemptError || !attempt) {
-      return { ok: false, error: "Gagal menyimpan riwayat sesi wawancara." };
-    }
-
-    const { error: cardUpdateError } = await supabase
-      .from("interview_cards")
-      .update({
-        confidence_level: parsed.confidenceLevel,
-        review_count: card.review_count + 1,
-        next_review_at: nextReviewAt,
-        updated_at: nowIso,
-      })
-      .eq("id", card.id)
-      .eq("user_id", user.id);
-
-    if (cardUpdateError) {
-      await supabase
-        .from("interview_attempts")
-        .delete()
-        .eq("id", attempt.id)
-        .eq("user_id", user.id);
-      return { ok: false, error: "Gagal memperbarui jadwal review kartu." };
-    }
-
-    const [quizzesRes, labsRes, interviewsRes] = await Promise.all([
-      supabase
-        .from("quiz_attempts")
-        .select("score")
-        .eq("user_id", user.id)
-        .eq("skill_id", skill.id)
-        .order("attempted_at", { ascending: false })
-        .limit(3),
-      supabase
-        .from("lab_submissions")
-        .select("passed, track_modules!inner(skill_id)")
-        .eq("user_id", user.id)
-        .eq("track_modules.skill_id", skill.id),
-      supabase
-        .from("interview_attempts")
-        .select("confidence_level")
-        .eq("user_id", user.id)
-        .eq("skill_id", skill.id)
-        .order("attempted_at", { ascending: false })
-        .limit(1),
-    ]);
-
-    const signalError =
-      quizzesRes.error ?? labsRes.error ?? interviewsRes.error;
-    if (signalError) {
-      return { ok: false, error: "Gagal membaca sinyal Mastery Score." };
-    }
-
     const quizScores = (quizzesRes.data ?? []).map((row) => row.score);
     const labRows = labsRes.data ?? [];
     const breakdown = calculateMasteryBreakdown({
-      source: skill.source,
+      source: skillRes.data.source,
       quizScores,
       labPassed: labRows.some((row) => row.passed),
       labSubmitted: labRows.length > 0,
-      latestConfidence:
-        interviewsRes.data?.[0]?.confidence_level ?? parsed.confidenceLevel,
+      latestConfidence: parsed.confidenceLevel,
     });
 
-    const { error: skillUpdateError } = await supabase
-      .from("skills")
-      .update({
-        mastery_score: breakdown.masteryScore,
-        status: breakdown.status,
-        updated_at: nowIso,
-      })
-      .eq("id", skill.id)
-      .eq("user_id", user.id);
+    const { error: rpcError } = await supabase.rpc("submit_interview_attempt", {
+      p_card_id: card.id,
+      p_user_notes: parsed.userNotes,
+      p_duration_seconds: parsed.durationSeconds,
+      p_confidence_level: parsed.confidenceLevel,
+      p_attempted_at: nowIso,
+      p_next_review_at: nextReviewAt,
+      p_mastery_score: breakdown.masteryScore,
+      p_skill_status: breakdown.status,
+    });
 
-    if (skillUpdateError) {
-      return { ok: false, error: "Gagal memperbarui Mastery Score skill." };
+    if (rpcError) {
+      return { ok: false, error: "Gagal menyimpan sesi wawancara." };
     }
 
     revalidatePath("/interview");

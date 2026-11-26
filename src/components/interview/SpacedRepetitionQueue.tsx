@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import { createInterviewCardAction } from "@/actions/interview";
 import {
+  INTERVIEW_CARD_SOURCE_LABELS,
   InterviewTimer,
   type InterviewAttemptItem,
   type InterviewCardItem,
-  type InterviewSkillItem,
 } from "@/components/interview/InterviewTimer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,19 +37,17 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { isCardDue, sortDueInterviewCards } from "@/lib/spaced-repetition";
-import type { InterviewCardSource } from "@/types/database";
+import type { InterviewCardSource, SkillStatus } from "@/types/database";
+
+export type InterviewSkillItem = {
+  id: string;
+  name: string;
+  status: SkillStatus;
+};
 
 const SOURCE_FILTER_LABELS: Record<"all" | InterviewCardSource, string> = {
   all: "Semua Sumber",
-  lab_review: "Hasil Lab Review",
-  skill_gap: "Skill Gap",
-  manual: "Manual",
-};
-
-const SOURCE_BADGE_LABELS: Record<InterviewCardSource, string> = {
-  lab_review: "Hasil Lab Review",
-  skill_gap: "Skill Gap",
-  manual: "Manual",
+  ...INTERVIEW_CARD_SOURCE_LABELS,
 };
 
 export function SpacedRepetitionQueue({
@@ -80,6 +78,14 @@ export function SpacedRepetitionQueue({
   const skillMap = useMemo(
     () => new Map(skills.map((skill) => [skill.id, skill])),
     [skills],
+  );
+
+  const selectableSkills = useMemo(
+    () =>
+      newSource === "skill_gap"
+        ? skills.filter((skill) => skill.status === "gap")
+        : skills,
+    [newSource, skills],
   );
 
   const filteredCards = useMemo(() => {
@@ -230,7 +236,7 @@ export function SpacedRepetitionQueue({
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {skills.map((skill) => (
+                    {selectableSkills.map((skill) => (
                       <SelectItem key={skill.id} value={skill.id}>
                         {skill.name} ({skill.status})
                       </SelectItem>
@@ -246,6 +252,13 @@ export function SpacedRepetitionQueue({
                   onValueChange={(val) => {
                     if (val === "manual" || val === "skill_gap") {
                       setNewSource(val);
+                      if (
+                        val === "skill_gap" &&
+                        skillMap.get(newSkillId)?.status !== "gap"
+                      ) {
+                        const firstGap = skills.find((s) => s.status === "gap");
+                        setNewSkillId(firstGap?.id ?? "");
+                      }
                     }
                   }}
                 >
@@ -332,7 +345,7 @@ export function SpacedRepetitionQueue({
                               {skillName}
                             </Badge>
                             <Badge variant="outline" className="text-[10px]">
-                              {SOURCE_BADGE_LABELS[card.source]}
+                              {INTERVIEW_CARD_SOURCE_LABELS[card.source]}
                             </Badge>
                           </div>
                           <span className="text-[11px] text-muted-foreground">

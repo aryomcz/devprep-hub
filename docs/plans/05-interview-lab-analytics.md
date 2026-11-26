@@ -80,21 +80,21 @@ feat(interview): build interview lab workspace with 2-minute timer and review qu
 - `src/app/(dashboard)/dashboard/page.tsx` *(modifikasi: ganti placeholder menjadi dashboard penuh)*
 
 ### Tugas
-- [ ] Bangun modul murni *in-process* `src/lib/todays-focus.ts` dengan TDD (`todays-focus.test.ts`):
+- [x] Bangun modul murni *in-process* `src/lib/todays-focus.ts` dengan TDD (`todays-focus.test.ts`):
   - `pickTodaysFocus({ dueInterviewCards, unreadDigests, activeTrackModules })`: prioritas deterministik *(1) `InterviewCard` jatuh tempo → (2) `DailyDigest` belum dibaca → (3) `TrackModule` berstatus `in_progress`*, tanpa memanggil LLM.
   - `calculateLearningStreak(activityDates, today)`: menghitung jumlah hari aktif beruntun dari aktivitas `quiz_attempts`, `lab_submissions`, dan `interview_attempts`.
-- [ ] Bangun komponen dashboard di `src/components/dashboard/`:
+- [x] Bangun komponen dashboard di `src/components/dashboard/`:
   - `TodaysFocusCard.tsx` (kartu prioritas utama dengan CTA langsung ke `/interview`, `/digest`, atau `/tracks/[id]/modules/[moduleId]`).
   - `ReadinessOverview.tsx` (ringkasan `ReadinessMeter` target magang teratas dan progres `One-App Capstone` aktif).
   - `MasteryChart.tsx` (ringkasan `MasteryScore` per `Skill`, tren `QuizAttempt`, dan *learning streak*).
-- [ ] Lengkapi `src/app/(dashboard)/dashboard/page.tsx` sebagai Server Component yang hanya membaca data ter-cache dari PostgreSQL via RLS (nol panggilan Gemini/Public API pada halaman baca).
-- [ ] Lakukan audit batas modul (`ADR-011`) untuk memastikan: `src/lib/` bebas NextRequest/UI, `src/services/` bebas primitif Next.js (`cookies`/`revalidatePath`/`NextRequest`), `src/actions/` tidak memanggil Gemini/Public API, dan `SUPABASE_SECRET_KEY` hanya dipakai di `/api/cron/daily-digest`.
+- [x] Lengkapi `src/app/(dashboard)/dashboard/page.tsx` sebagai Server Component yang hanya membaca data ter-cache dari PostgreSQL via RLS (nol panggilan Gemini/Public API pada halaman baca).
+- [x] Lakukan audit batas modul (`ADR-011`) untuk memastikan: `src/lib/` bebas NextRequest/UI, `src/services/` bebas primitif Next.js (`cookies`/`revalidatePath`/`NextRequest`), `src/actions/` tidak memanggil Gemini/Public API, dan `SUPABASE_SECRET_KEY` hanya dipakai di `/api/cron/daily-digest`.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit` lulus dengan 0 error.
-- [ ] `npm run lint` lulus dengan 0 error.
-- [ ] `npm test` menjalankan seluruh unit & seam test (`schemas`, `auth-guard`, `skill-normalizer`, `mastery`, `cloze-parser`, `diff-sanitizer`, `spaced-repetition`, `todays-focus`, `github`, `lookup`, `hybrid-sourcing`, `daily-digest`, `jd-analyzer`, `track-generator`, `module-generator`, `code-reviewer`) dan 100% lulus.
-- [ ] `npm run build` produksi lulus tanpa error.
+- [x] `npx tsc --noEmit` lulus dengan 0 error.
+- [x] `npm run lint` lulus dengan 0 error.
+- [x] `npm test` menjalankan seluruh unit & seam test (`schemas`, `auth-guard`, `skill-normalizer`, `mastery`, `cloze-parser`, `diff-sanitizer`, `spaced-repetition`, `todays-focus`, `github`, `lookup`, `hybrid-sourcing`, `daily-digest`, `jd-analyzer`, `track-generator`, `module-generator`, `code-reviewer`) dan 100% lulus.
+- [x] `npm run build` produksi lulus tanpa error.
 
 ### Saran Conventional Commit
 ```text
@@ -107,3 +107,4 @@ feat(dashboard): add deterministic todays focus card, mastery analytics, and fin
 
 - **2026-11-27 — Step 5.1 (Selesai & Di-commit):** Modul murni `src/lib/spaced-repetition.ts` + `spaced-repetition.test.ts` (3/3 lulus, total 75/75 test hijau) dan Server Actions `src/actions/interview.ts` (`createInterviewCardAction` & `submitInterviewAttemptAction`). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
 - **2026-11-27 — Step 5.2 (Selesai & Di-commit):** `SpacedRepetitionQueue.tsx`, `InterviewTimer.tsx` (timer 2 menit, kerangka 3 poin, evaluasi mandiri +2/+5/+14 hari, riwayat sesi), dan halaman `/interview`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (75/75), dan `npm run build`.
+- **2026-11-27 — Step 5.3 (Selesai & Di-commit):** `src/lib/todays-focus.ts` + test, komponen `TodaysFocusCard.tsx`, `ReadinessOverview.tsx`, `MasteryChart.tsx`, `/dashboard` (cache-only `Promise.all`), plus `Step 3.4` (`hackernews.ts`, `daily-digest.ts` + test, `/api/cron/daily-digest`, `/digest`). Lulus `tsc --noEmit`, `npm run lint`, `npm test` (**16 file, 83/83**), audit `ADR-011`, dan `npm run build` (24 route).

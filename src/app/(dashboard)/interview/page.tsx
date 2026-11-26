@@ -27,7 +27,7 @@ async function InterviewLabLoader() {
       .order("next_review_at", { ascending: true }),
     supabase
       .from("skills")
-      .select("id, name, status, mastery_score")
+      .select("id, name, status")
       .eq("user_id", user.id)
       .order("name", { ascending: true }),
     supabase

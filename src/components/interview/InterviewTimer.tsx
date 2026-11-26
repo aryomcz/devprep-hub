@@ -37,13 +37,6 @@ export type InterviewCardItem = {
   next_review_at: string;
 };
 
-export type InterviewSkillItem = {
-  id: string;
-  name: string;
-  status: SkillStatus;
-  mastery_score: number;
-};
-
 export type InterviewAttemptItem = {
   id: string;
   card_id: string;
@@ -62,11 +55,12 @@ const THREE_POINT_TEMPLATE = [
   "3. Trade-off & Batasan: ",
 ].join("\n\n");
 
-const SOURCE_LABELS: Record<InterviewCardSource, string> = {
-  lab_review: "Hasil Lab Review",
-  skill_gap: "Skill Gap",
-  manual: "Manual",
-};
+export const INTERVIEW_CARD_SOURCE_LABELS: Record<InterviewCardSource, string> =
+  {
+    lab_review: "Hasil Lab Review",
+    skill_gap: "Skill Gap",
+    manual: "Manual",
+  };
 
 const STATUS_LABELS: Record<SkillStatus, string> = {
   gap: "Gap",
@@ -183,7 +177,9 @@ export function InterviewTimer({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{skillName}</Badge>
-              <Badge variant="outline">{SOURCE_LABELS[card.source]}</Badge>
+              <Badge variant="outline">
+                {INTERVIEW_CARD_SOURCE_LABELS[card.source]}
+              </Badge>
               <span className="text-xs text-muted-foreground">
                 Direview {card.review_count}x
               </span>

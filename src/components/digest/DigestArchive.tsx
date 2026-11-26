@@ -29,11 +29,21 @@ export type DigestListItem = {
   source: DigestSource;
   title: string;
   url: string;
-  tags: string[];
   matched_skill_id: string | null;
   is_read: boolean;
   digest_date: string;
 };
+
+function toSafeExternalHref(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl);
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+      ? parsed.toString()
+      : "#";
+  } catch {
+    return "#";
+  }
+}
 
 export function DigestArchive({
   digests,
@@ -86,7 +96,7 @@ export function DigestArchive({
     startTransition(async () => {
       const res = await saveToNoteAction({
         title: skillName ? `Catatan ${skillName}` : "Ringkasan Daily Digest",
-        term: skillName ?? item.title,
+        term: (skillName ?? item.title).slice(0, 200),
         definition: `Ringkasan bacaan dari ${item.source === "devto" ? "Dev.to" : "Hacker News"}: ${item.title}\n\nTautan: ${item.url}`,
         sourceLabel: `${item.source} (${item.digest_date})`,
         skillId: item.matched_skill_id,
@@ -195,7 +205,7 @@ export function DigestArchive({
                     </div>
 
                     <a
-                      href={item.url}
+                      href={toSafeExternalHref(item.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"

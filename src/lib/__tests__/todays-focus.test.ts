@@ -6,15 +6,12 @@ import {
 
 describe("pickTodaysFocus", () => {
   const dueCard = {
-    id: "card-1",
     question_prompt: "Apa perbedaan B-Tree dan GIN index?",
     skillName: "PostgreSQL",
-    next_review_at: "2026-11-26T08:00:00.000Z",
   };
   const unreadDigest = {
-    id: "digest-1",
     title: "Understanding Postgres Locks",
-    source: "devto",
+    source: "devto" as const,
     skillName: "PostgreSQL",
   };
   const activeModule = {

@@ -113,15 +113,15 @@ feat(sourcing): implement parallel hybrid sourcing service with 4s timeout and 7
 - `vercel.json` *(baru)*
 
 ### Tugas
-- [ ] Buat `src/services/external/hackernews.ts` (mengambil *top stories* Hacker News Firebase API dengan batas *concurrency* ringan & timeout 4 detik) dan `src/services/external/daily-digest.ts` (`curateDailyDigestForUser(skills, adapters?)` yang mencocokkan 1–2 artikel Dev.to/HN terbaik terhadap `Skill` berstatus `gap` atau `learning` berdasarkan `tags`/judul).
-- [ ] Tulis unit test `src/services/external/__tests__/daily-digest.test.ts` menggunakan adapter tiruan untuk memverifikasi pemilihan 1–2 artikel terbaik, pencocokan `matched_skill_id`, dan ketahanan saat salah satu sumber down.
-- [ ] Buat Route Handler tipis `src/app/api/cron/daily-digest/route.ts`: validasi header `Authorization: Bearer <CRON_SECRET>` lewat `verifyCronSecret`, gunakan `createAdminClient` (`SUPABASE_SECRET_KEY`), tarik daftar user aktif + skill `gap`/`learning`, jalankan `curateDailyDigestForUser`, dan simpan ke `daily_digests` secara idempoten (`onConflict: 'user_id,source,external_id', ignoreDuplicates: true`).
-- [ ] Tambahkan jadwal cron harian di `vercel.json` (`/api/cron/daily-digest`), buat `src/actions/digest.ts` (`markDigestReadAction`), dan bangun halaman `/digest` (filter `Skill` & status baca, tandai dibaca, serta tombol **Save to Note** memanggil `saveToNoteAction`).
+- [x] Buat `src/services/external/hackernews.ts` (mengambil *top stories* Hacker News Firebase API dengan batas *concurrency* ringan & timeout 4 detik) dan `src/services/external/daily-digest.ts` (`curateDailyDigestForUser(skills, adapters?)` yang mencocokkan 1–2 artikel Dev.to/HN terbaik terhadap `Skill` berstatus `gap` atau `learning` berdasarkan `tags`/judul).
+- [x] Tulis unit test `src/services/external/__tests__/daily-digest.test.ts` menggunakan adapter tiruan untuk memverifikasi pemilihan 1–2 artikel terbaik, pencocokan `matched_skill_id`, dan ketahanan saat salah satu sumber down.
+- [x] Buat Route Handler tipis `src/app/api/cron/daily-digest/route.ts`: validasi header `Authorization: Bearer <CRON_SECRET>` lewat `verifyCronSecret`, gunakan `createAdminClient` (`SUPABASE_SECRET_KEY`), tarik daftar user aktif + skill `gap`/`learning`, jalankan `curateDailyDigestForUser`, dan simpan ke `daily_digests` secara idempoten (`onConflict: 'user_id,source,external_id', ignoreDuplicates: true`).
+- [x] Tambahkan jadwal cron harian di `vercel.json` (`/api/cron/daily-digest`), buat `src/actions/digest.ts` (`markDigestReadAction`), dan bangun halaman `/digest` (filter `Skill` & status baca, tandai dibaca, serta tombol **Save to Note** memanggil `saveToNoteAction`).
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`daily-digest.test.ts` hijau).
-- [ ] `npm run build` lulus.
-- [ ] Verifikasi keamanan: `GET /api/cron/daily-digest` tanpa header `Authorization: Bearer <CRON_SECRET>` mengembalikan `401`; pemanggilan ulang dengan token valid di hari yang sama tidak menggandakan baris `daily_digests`.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`daily-digest.test.ts` hijau).
+- [x] `npm run build` lulus.
+- [x] Verifikasi keamanan: `GET /api/cron/daily-digest` tanpa header `Authorization: Bearer <CRON_SECRET>` mengembalikan `401`; pemanggilan ulang dengan token valid di hari yang sama tidak menggandakan baris `daily_digests`.
 
 ### Saran Conventional Commit
 ```text
@@ -135,3 +135,4 @@ feat(digest): add daily engineering digest cron endpoint and digest archive page
 - **2026-11-26 — Step 3.1 (Selesai & Di-commit):** Wrapper server-only `src/lib/gemini.ts` (Structured JSON Output, `GeminiRateLimitError` 429, maks. 1 *retry* ringan) serta *deep service* `src/services/ai/jd-analyzer.ts` + `jd-analyzer.test.ts` (4/4 test lulus, total 50/50 hijau). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
 - **2026-11-26 — Step 3.2 (Selesai & Di-commit):** Endpoint `POST /api/internships/analyze` (`maxDuration = 30`, RPC atomik `save_internship_analysis` tanpa *Hybrid Sourcing*), `src/actions/internships.ts`, UI `JDAnalyzerForm.tsx`, `ReadinessCard.tsx`, `JargonList.tsx`, `/internships`, `/internships/[id]`, serta pembaruan `src/lib/gemini.ts` ke `gemini-3.5-flash-lite` + fallback. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (50/50), `npm run build`, dan uji live Gemini API.
 - **2026-11-26 — Step 3.3 (Selesai & Di-commit):** Adapter `src/services/external/devto.ts` dan *deep service* `src/services/external/hybrid-sourcing.ts` + `hybrid-sourcing.test.ts` (4/4 lulus, cache 7 hari, `Promise.allSettled` timeout 4s, deduplikasi URL). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test` (54/54).
+- **2026-11-27 — Step 3.4 (Selesai & Di-commit):** `hackernews.ts` (budget timeout 4s + concurrency cap 4 + validasi URL), `daily-digest.ts` + test, `/api/cron/daily-digest` + test (`verifyCronSecret` 401 + upsert idempoten), `src/actions/digest.ts`, `DigestArchive.tsx`, `/digest`, dan `vercel.json`.

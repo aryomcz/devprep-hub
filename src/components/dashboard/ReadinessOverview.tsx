@@ -15,7 +15,6 @@ export type DashboardInternshipReadiness = {
   id: string;
   title: string;
   companyName: string;
-  status: string;
   readinessScore: number;
 };
 

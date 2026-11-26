@@ -1,6 +1,8 @@
+import type { DigestSource } from "@/types/database";
+
 export type TodaysFocusKind = "interview" | "digest" | "module" | "empty";
 
-export type TodaysFocusResult = {
+export type TodaysFocus = {
   kind: TodaysFocusKind;
   title: string;
   description: string;
@@ -11,15 +13,12 @@ export type TodaysFocusResult = {
 
 export type TodaysFocusInput = {
   dueInterviewCards: Array<{
-    id: string;
     question_prompt: string;
     skillName?: string;
-    next_review_at: string;
   }>;
   unreadDigests: Array<{
-    id: string;
     title: string;
-    source: string;
+    source: DigestSource;
     skillName?: string;
   }>;
   activeTrackModules: Array<{
@@ -34,7 +33,7 @@ export type TodaysFocusInput = {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export function pickTodaysFocus(input: TodaysFocusInput): TodaysFocusResult {
+export function pickTodaysFocus(input: TodaysFocusInput): TodaysFocus {
   const firstCard = input.dueInterviewCards[0];
   if (firstCard) {
     const count = input.dueInterviewCards.length;

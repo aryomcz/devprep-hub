@@ -7,19 +7,24 @@ import { createClient } from "@/lib/supabase/server";
 
 export type DigestActionResult = { ok: true } | { ok: false; error: string };
 
+const markDigestReadSchema = z.object({
+  digestId: z.uuid("ID digest tidak valid."),
+  isRead: z.boolean(),
+});
+
 export async function markDigestReadAction(
   digestId: string,
   isRead = true,
 ): Promise<DigestActionResult> {
   try {
     const user = await requireAllowedUser();
-    const id = z.uuid("ID digest tidak valid.").parse(digestId);
+    const parsed = markDigestReadSchema.parse({ digestId, isRead });
     const supabase = await createClient();
 
     const { error } = await supabase
       .from("daily_digests")
-      .update({ is_read: isRead })
-      .eq("id", id)
+      .update({ is_read: parsed.isRead })
+      .eq("id", parsed.digestId)
       .eq("user_id", user.id);
 
     if (error) {

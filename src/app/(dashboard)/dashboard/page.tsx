@@ -54,8 +54,9 @@ async function DashboardLoader() {
       .order("mastery_score", { ascending: false }),
     supabase
       .from("target_internships")
-      .select("id, title, company_name, status, created_at")
+      .select("id, title, company_name, created_at")
       .eq("user_id", user.id)
+      .neq("status", "rejected")
       .order("created_at", { ascending: false })
       .limit(4),
     supabase
@@ -85,19 +86,19 @@ async function DashboardLoader() {
       .select("id, score, attempted_at")
       .eq("user_id", user.id)
       .order("attempted_at", { ascending: false })
-      .limit(30),
+      .limit(365),
     supabase
       .from("lab_submissions")
       .select("submitted_at")
       .eq("user_id", user.id)
       .order("submitted_at", { ascending: false })
-      .limit(30),
+      .limit(365),
     supabase
       .from("interview_attempts")
       .select("attempted_at")
       .eq("user_id", user.id)
       .order("attempted_at", { ascending: false })
-      .limit(30),
+      .limit(365),
   ]);
 
   const now = new Date();
@@ -157,7 +158,6 @@ async function DashboardLoader() {
     id: item.id,
     title: item.title,
     companyName: item.company_name,
-    status: item.status,
     readinessScore: calculateReadinessMeter(
       linksByInternship.get(item.id) ?? [],
     ),

@@ -670,6 +670,19 @@ export type Database = {
         };
         Returns: undefined;
       };
+      submit_interview_attempt: {
+        Args: {
+          p_card_id: string;
+          p_user_notes: string;
+          p_duration_seconds: number;
+          p_confidence_level: ConfidenceLevel;
+          p_attempted_at: string;
+          p_next_review_at: string;
+          p_mastery_score: number;
+          p_skill_status: SkillStatus;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       skill_category: SkillCategory;

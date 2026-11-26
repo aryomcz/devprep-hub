@@ -95,4 +95,33 @@ describe("curateDailyDigestForUser", () => {
     expect(result).toEqual([]);
     expect(fetchHn).not.toHaveBeenCalled();
   });
+
+  it("avoids substring false-positives (Go vs Google) and excludes unmatched or unsafe URLs", async () => {
+    const result = await curateDailyDigestForUser(
+      [{ id: "skill-go", name: "Go", slug: "go", status: "gap" }],
+      {
+        adapters: {
+          fetchDevToByTag: vi.fn(async () => []),
+          fetchHackerNews: vi.fn(async () => [
+            {
+              source: "hackernews" as const,
+              externalId: "hn-google",
+              title: "Google releases new quantum chip",
+              url: "https://example.com/google",
+              tags: [],
+            },
+            {
+              source: "hackernews" as const,
+              externalId: "hn-xss",
+              title: "Go concurrency patterns",
+              url: "javascript:alert(1)",
+              tags: [],
+            },
+          ]),
+        },
+      },
+    );
+
+    expect(result).toEqual([]);
+  });
 });

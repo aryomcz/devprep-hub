@@ -56,16 +56,22 @@ export async function GET(request: NextRequest) {
       digest_date: digestDate,
     }));
 
-    const { error: upsertError } = await supabase
+    const { data: upsertedRows, error: upsertError } = await supabase
       .from("daily_digests")
       .upsert(payload, {
         onConflict: "user_id,source,external_id",
         ignoreDuplicates: true,
-      });
+      })
+      .select("id");
 
-    if (!upsertError) {
-      insertedCount += payload.length;
+    if (upsertError) {
+      return NextResponse.json(
+        { error: "Gagal menyimpan daily digest." },
+        { status: 500 },
+      );
     }
+
+    insertedCount += upsertedRows?.length ?? 0;
   }
 
   return NextResponse.json({
