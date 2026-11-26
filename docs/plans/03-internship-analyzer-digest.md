@@ -52,15 +52,15 @@ feat(analyzer): add gemini structured client and 3-layer jd analyzer service
 - `src/app/(dashboard)/internships/[id]/page.tsx` *(baru)*
 
 ### Tugas
-- [ ] Buat Route Handler tipis `src/app/api/internships/analyze/route.ts` (`export const maxDuration = 30`): verifikasi `requireAllowedUser`, validasi body dengan Zod, ambil daftar `Skill` eksisting user dari Supabase, panggil `analyzeInternshipInput`, simpan hasil secara atomik melalui PostgreSQL RPC `save_internship_analysis` (upsert `skills` baru dengan `mastery_score = 0`, `status = 'gap'`, `source = 'jd'`), lalu kembalikan `internshipId` tanpa menjalankan *Hybrid Sourcing*. Tangani error `429` dengan status HTTP & pesan ramah untuk tombol coba ulang.
-- [ ] Buat `src/actions/internships.ts`: mutasi ubah status lamaran (`preparing | applied | interview | offer | rejected`) dan hapus `TargetInternship` via RLS + `revalidatePath`.
-- [ ] Bangun UI `/internships` (`JDAnalyzerForm.tsx` 3 tab mode input dengan penghitung batas 15.000 karakter + `ReadinessCard.tsx` yang menghitung `ReadinessMeter` `2:1` via `src/lib/mastery.ts` + filter status lamaran).
-- [ ] Bangun UI `/internships/[id]` menampilkan detail JD, matriks `Skill` (`must_have` vs `nice_to_have` beserta status `gap`/`learning`/`mastered`), tombol **Generate Capstone Track** (mengarah ke alur Fase 4), dan `JargonList.tsx` yang memanggil `saveToNoteAction` (dari Step 2.2) untuk tombol 1-klik **Save to Note** per istilah jargon.
+- [x] Buat Route Handler tipis `src/app/api/internships/analyze/route.ts` (`export const maxDuration = 30`): verifikasi `requireAllowedUser`, validasi body dengan Zod, ambil daftar `Skill` eksisting user dari Supabase, panggil `analyzeInternshipInput`, simpan hasil secara atomik melalui PostgreSQL RPC `save_internship_analysis` (upsert `skills` baru dengan `mastery_score = 0`, `status = 'gap'`, `source = 'jd'`), lalu kembalikan `internshipId` tanpa menjalankan *Hybrid Sourcing*. Tangani error `429` dengan status HTTP & pesan ramah untuk tombol coba ulang.
+- [x] Buat `src/actions/internships.ts`: mutasi ubah status lamaran (`preparing | applied | interview | offer | rejected`) dan hapus `TargetInternship` via RLS + `revalidatePath`.
+- [x] Bangun UI `/internships` (`JDAnalyzerForm.tsx` 3 tab mode input dengan penghitung batas 15.000 karakter + `ReadinessCard.tsx` yang menghitung `ReadinessMeter` `2:1` via `src/lib/mastery.ts` + filter status lamaran).
+- [x] Bangun UI `/internships/[id]` menampilkan detail JD, matriks `Skill` (`must_have` vs `nice_to_have` beserta status `gap`/`learning`/`mastered`), tombol **Generate Capstone Track** (mengarah ke alur Fase 4), dan `JargonList.tsx` yang memanggil `saveToNoteAction` (dari Step 2.2) untuk tombol 1-klik **Save to Note** per istilah jargon.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
-- [ ] `npm run build` lulus.
-- [ ] Verifikasi lokal: submit JD di `/internships`, cek `target_internships` + `skills` + `internship_skills` tersimpan atomik, `ReadinessMeter` terhitung tepat, dan klik **Save to Note** pada salah satu entri `JargonGlossary` membuat draf catatan baru berformat `{{istilah}}`.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
+- [x] `npm run build` lulus.
+- [x] Verifikasi lokal: submit JD di `/internships`, cek `target_internships` + `skills` + `internship_skills` tersimpan atomik, `ReadinessMeter` terhitung tepat, dan klik **Save to Note** pada salah satu entri `JargonGlossary` membuat draf catatan baru berformat `{{istilah}}`.
 
 ### Saran Conventional Commit
 ```text
@@ -133,3 +133,4 @@ feat(digest): add daily engineering digest cron endpoint and digest archive page
 ## Handoff Log
 
 - **2026-11-26 — Step 3.1 (Selesai & Di-commit):** Wrapper server-only `src/lib/gemini.ts` (Structured JSON Output, `GeminiRateLimitError` 429, maks. 1 *retry* ringan) serta *deep service* `src/services/ai/jd-analyzer.ts` + `jd-analyzer.test.ts` (4/4 test lulus, total 50/50 hijau). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
+- **2026-11-26 — Step 3.2 (Selesai & Di-commit):** Endpoint `POST /api/internships/analyze` (`maxDuration = 30`, RPC atomik `save_internship_analysis` tanpa *Hybrid Sourcing*), `src/actions/internships.ts`, UI `JDAnalyzerForm.tsx`, `ReadinessCard.tsx`, `JargonList.tsx`, `/internships`, `/internships/[id]`, serta pembaruan `src/lib/gemini.ts` ke `gemini-3.5-flash-lite` + fallback. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (50/50), `npm run build`, dan uji live Gemini API.
