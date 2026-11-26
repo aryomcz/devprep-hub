@@ -18,16 +18,16 @@
 - `src/actions/interview.ts` *(baru)*
 
 ### Tugas
-- [ ] Tulis unit test (`tdd`) terlebih dahulu di `src/lib/__tests__/spaced-repetition.test.ts` lalu implementasikan `src/lib/spaced-repetition.ts`:
+- [x] Tulis unit test (`tdd`) terlebih dahulu di `src/lib/__tests__/spaced-repetition.test.ts` lalu implementasikan `src/lib/spaced-repetition.ts`:
   - `calculateNextReview(confidenceLevel, fromDate)`: `'confused' → +2 hari`, `'partial' → +5 hari`, `'ready' → +14 hari`.
   - `isCardDue(card, now)` dan `sortDueInterviewCards(cards, now)` (mengurutkan kartu jatuh tempo dari yang paling lama tertunda).
-- [ ] Buat `src/actions/interview.ts` (terautentikasi `requireAllowedUser` via RLS):
+- [x] Buat `src/actions/interview.ts` (terautentikasi `requireAllowedUser` via RLS):
   - `createInterviewCardAction`: tambah kartu manual (`source = 'manual'`) atau bangkitkan kartu dari topik `Skill` berstatus `gap` (`source = 'skill_gap'`).
   - `submitInterviewAttemptAction`: validasi Zod (`cardId`, `durationSeconds`, `userNotes`, `confidenceLevel`), sisipkan 1 baris baru *append-only* ke `interview_attempts`, perbarui `interview_cards` (`confidence_level`, `review_count + 1`, `next_review_at` dari `calculateNextReview`), hitung ulang `MasteryScore` & `SkillStatus` `Skill` terkait via `src/lib/mastery.ts`, perbarui tabel `skills`, lalu `revalidatePath('/interview')` dan `revalidatePath('/dashboard')`.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`spaced-repetition.test.ts` hijau).
-- [ ] Cek domain invariant: `src/lib/spaced-repetition.ts` bebas dari `Date.now()` tersembunyi (menerima `fromDate` / `now` lewat argumen *seam* sehingga 100% deterministik).
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`spaced-repetition.test.ts` hijau).
+- [x] Cek domain invariant: `src/lib/spaced-repetition.ts` bebas dari `Date.now()` tersembunyi (menerima `fromDate` / `now` lewat argumen *seam* sehingga 100% deterministik).
 
 ### Saran Conventional Commit
 ```text
