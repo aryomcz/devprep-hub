@@ -21,17 +21,17 @@
 - `src/app/(dashboard)/tracks/[id]/page.tsx` *(baru)*
 
 ### Tugas
-- [ ] Bangun `src/services/ai/track-generator.ts` (`generateTrackBlueprint(input, aiAdapter?)`):
+- [x] Bangun `src/services/ai/track-generator.ts` (`generateTrackBlueprint(input, aiAdapter?)`):
   - Terima input dari satu `TargetInternship` atau daftar `Skill` prioritas (beserta pilihan mode untuk topik bahasa baru: `microservice` vs `language_native`).
   - Hasilkan `capstone_title`, `capstone_description`, `primary_stack`, `architecture_overview`, dan urutan kerangka `TrackModule` (`skill_id`, `order_index`, `module_type`, `target_language`, `objective`) tanpa mengisi detail berat (`concept_brief`, `warmup_drills`, `hands_on_ticket`).
-- [ ] Tulis `src/services/ai/__tests__/track-generator.test.ts` menggunakan *mock AI adapter* untuk menguji validasi skema Zod blueprint, pengurutan `order_index`, serta klasifikasi `capstone_feature` vs `microservice`/`language_native`.
-- [ ] Buat Route Handler tipis `src/app/api/tracks/generate/route.ts` (`export const maxDuration = 30`): cek `requireAllowedUser`, panggil `generateTrackBlueprint`, simpan `learning_tracks` dan `track_modules` dengan `content_status = 'pending'`, modul pertama `status = 'in_progress'`, dan modul berikutnya `status = 'locked'`.
-- [ ] Buat `src/actions/tracks.ts` (arsip/ubah status `LearningTrack` & *unlock* modul berikutnya) serta bangun `/tracks` (daftar track + form pilih target lowongan/skill) dan `/tracks/[id]` (cetak biru arsitektur Capstone + peta modul dengan badge `status` & `content_status`).
+- [x] Tulis `src/services/ai/__tests__/track-generator.test.ts` menggunakan *mock AI adapter* untuk menguji validasi skema Zod blueprint, pengurutan `order_index`, serta klasifikasi `capstone_feature` vs `microservice`/`language_native`.
+- [x] Buat Route Handler tipis `src/app/api/tracks/generate/route.ts` (`export const maxDuration = 30`): cek `requireAllowedUser`, panggil `generateTrackBlueprint`, simpan `learning_tracks` dan `track_modules` dengan `content_status = 'pending'`, modul pertama `status = 'in_progress'`, dan modul berikutnya `status = 'locked'`.
+- [x] Buat `src/actions/tracks.ts` (arsip/ubah status `LearningTrack` & *unlock* modul berikutnya) serta bangun `/tracks` (daftar track + form pilih target lowongan/skill) dan `/tracks/[id]` (cetak biru arsitektur Capstone + peta modul dengan badge `status` & `content_status`).
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`track-generator.test.ts` hijau).
-- [ ] `npm run build` lulus.
-- [ ] Verifikasi lokal: generate Track dari `/internships/[id]` atau `/tracks`, pastikan `learning_tracks` + kerangka `track_modules` (`content_status = 'pending'`) tersimpan cepat tanpa menunggu isi modul detail.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`track-generator.test.ts` hijau).
+- [x] `npm run build` lulus.
+- [x] Verifikasi lokal: generate Track dari `/internships/[id]` atau `/tracks`, pastikan `learning_tracks` + kerangka `track_modules` (`content_status = 'pending'`) tersimpan cepat tanpa menunggu isi modul detail.
 
 ### Saran Conventional Commit
 ```text
@@ -149,4 +149,4 @@ feat(labs): add diff sanitizer, ai code review endpoint, and auto interview card
 
 ## Handoff Log
 
-*(Kosong — akan diisi setelah setiap sub-step dikonfirmasi lulus verifikasi)*
+- **2026-11-26 — Step 4.1 (Selesai & Di-commit):** *Deep service* Stage-1 `src/services/ai/track-generator.ts` + `track-generator.test.ts` (4/4 lulus, total 58/58 test hijau), endpoint `POST /api/tracks/generate` (`maxDuration = 30`), `src/actions/tracks.ts`, `TrackBlueprintControls.tsx`, serta halaman `/tracks` dan `/tracks/[id]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test`, dan `npm run build`.
