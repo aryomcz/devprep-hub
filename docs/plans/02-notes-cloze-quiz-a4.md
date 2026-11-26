@@ -87,16 +87,16 @@ feat(notes): add markdown note editor, cloze toolbar, and unified save-to-note a
 - `src/components/notes/MarkdownEditor.tsx` *(modifikasi: tombol buka QuickLookupDrawer & sisip kutipan ke editor)*
 
 ### Tugas
-- [ ] Buat adapter sumber `src/services/external/wikipedia.ts` (Wikipedia REST summary + MDN search API dengan timeout 4 detik) dan `src/services/external/stackexchange.ts` (pertanyaan *top-voted* Stack Overflow dengan timeout 4 detik); keduanya menerima *injected fetch* pada *seam* pengujian.
-- [ ] Buat modul orkestrasi `src/services/external/lookup.ts` (`lookupTechnicalTerm(query, adapters?)`) yang menjalankan panggilan paralel lewat `Promise.allSettled`, menormalisasi hasil menjadi `{ source, title, url, summary }`, dan tetap mengembalikan sumber yang sukses bila salah satu API gagal/timeout.
-- [ ] Tulis unit test `src/services/external/__tests__/lookup.test.ts` (memverifikasi kegagalan parsial, timeout 4 detik, dan sanitasi query kosong).
-- [ ] Buat Route Handler tipis `src/app/api/resources/lookup/route.ts` (cek `requireAllowedUser`, validasi query `q`, panggil `lookupTechnicalTerm`).
-- [ ] Buat `src/components/notes/QuickLookupDrawer.tsx` dan hubungkan ke `MarkdownEditor` agar pengguna dapat mencari istilah dari editor catatan lalu menyisipkan ringkasan + tautan referensi langsung ke Markdown.
+- [x] Buat adapter sumber `src/services/external/wikipedia.ts` (Wikipedia REST summary + MDN search API dengan timeout 4 detik) dan `src/services/external/stackexchange.ts` (pertanyaan *top-voted* Stack Overflow dengan timeout 4 detik); keduanya menerima *injected fetch* pada *seam* pengujian.
+- [x] Buat modul orkestrasi `src/services/external/lookup.ts` (`lookupTechnicalTerm(query, adapters?)`) yang menjalankan panggilan paralel lewat `Promise.allSettled`, menormalisasi hasil menjadi `{ source, title, url, summary }`, dan tetap mengembalikan sumber yang sukses bila salah satu API gagal/timeout.
+- [x] Tulis unit test `src/services/external/__tests__/lookup.test.ts` (memverifikasi kegagalan parsial, timeout 4 detik, dan sanitasi query kosong).
+- [x] Buat Route Handler tipis `src/app/api/resources/lookup/route.ts` (cek `requireAllowedUser`, validasi query `q`, panggil `lookupTechnicalTerm`).
+- [x] Buat `src/components/notes/QuickLookupDrawer.tsx` dan hubungkan ke `MarkdownEditor` agar pengguna dapat mencari istilah dari editor catatan lalu menyisipkan ringkasan + tautan referensi langsung ke Markdown.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`lookup.test.ts` hijau tanpa jaringan).
-- [ ] `npm run build` lulus.
-- [ ] Cek batas modul: `src/services/external/*` bebas dari import `next/server` atau komponen React.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`lookup.test.ts` hijau tanpa jaringan).
+- [x] `npm run build` lulus.
+- [x] Cek batas modul: `src/services/external/*` bebas dari import `next/server` atau komponen React.
 
 ### Saran Conventional Commit
 ```text
@@ -140,3 +140,4 @@ feat(quiz): add cloze quiz runner, mastery score update, and A4 print view
 
 - **2026-11-26 — Step 2.1 (Selesai & Di-commit):** Parser *state-aware* `src/lib/cloze-parser.ts` (`parseClozeMarkdown`, `evaluateClozeAnswer`) beserta `src/lib/__tests__/cloze-parser.test.ts` (7/7 lulus, total 43/43 test hijau). Lulus `npm test`, `npx tsc --noEmit`, dan `npm run lint` tanpa dependensi eksternal.
 - **2026-11-26 — Step 2.2 (Selesai & Di-commit):** `src/actions/notes.ts` (CRUD + `saveToNoteAction`), `MarkdownEditor.tsx` (`NotesDirectory` & `MarkdownEditor` berbasis `<Textarea>` monospace + Cloze toolbar + *Live Preview*), `/notes`, dan `/notes/[id]`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (43/43), `npm run build`, serta uji browser dengan catatan CSS Flexbox & Gridbox.
+- **2026-11-26 — Step 2.3 (Selesai & Di-commit):** Layanan Quick Lookup paralel `src/services/external/{wikipedia,stackexchange,lookup}.ts` + `lookup.test.ts` (3/3 lulus, total 46/46 test hijau), endpoint `GET /api/resources/lookup`, dan `QuickLookupDrawer.tsx` di editor catatan. Lulus `tsc --noEmit`, `npm run lint`, `npm test`, dan `npm run build`.

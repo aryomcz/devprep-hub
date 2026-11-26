@@ -128,3 +128,52 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  html,
+  body,
+  main {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .a4-print-sheet {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .a4-print-columns {
+    column-count: 2;
+    column-gap: 8mm;
+    column-fill: balance;
+    font-size: 9.25pt;
+    line-height: 1.42;
+  }
+
+  .a4-print-columns pre,
+  .a4-print-columns blockquote,
+  .a4-print-columns h1,
+  .a4-print-columns h2,
+  .a4-print-columns h3,
+  .a4-print-columns .print-keep-together {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
