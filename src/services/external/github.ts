@@ -1,3 +1,7 @@
+import {
+  sanitizeCodeOrDiff,
+  type SanitizedDiffResult,
+} from "@/lib/diff-sanitizer";
 import { normalizeSkill } from "@/lib/skill-normalizer";
 import type { SkillCategory } from "@/types/database";
 
@@ -280,4 +284,57 @@ export async function fetchUserGithubSkills(
     skills: Array.from(skillMap.values()),
     scannedRepos: ownedRepos.length,
   };
+}
+
+const GITHUB_COMMIT_URL_REGEX =
+  /^https?:\/\/github\.com\/([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)\/commit\/([0-9a-fA-F]{7,40})(?:\.diff|\.patch)?(?:[/?#].*)?$/;
+
+export async function fetchSanitizedCommitDiff(
+  commitUrl: string,
+  options: Pick<GithubSyncOptions, "fetchFn" | "token"> = {},
+): Promise<SanitizedDiffResult> {
+  const match = GITHUB_COMMIT_URL_REGEX.exec(commitUrl.trim());
+  if (!match) {
+    throw new GithubSyncError(
+      "URL commit GitHub tidak valid. Gunakan format https://github.com/<owner>/<repo>/commit/<sha>.",
+      400,
+    );
+  }
+
+  const [, owner, repo, sha] = match;
+  const fetchFn = options.fetchFn ?? fetch;
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github.v3.diff",
+    "User-Agent": "dev-prep-hub",
+  };
+  if (options.token?.trim()) {
+    headers.Authorization = `Bearer ${options.token.trim()}`;
+  }
+
+  const res = await fetchFn(
+    `${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits/${encodeURIComponent(sha)}`,
+    {
+      headers,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    },
+  );
+
+  if (res.status === 404) {
+    throw new GithubSyncError("Commit GitHub tidak ditemukan atau privat.", 404);
+  }
+  if (res.status === 403 || res.status === 429) {
+    throw new GithubSyncError(
+      "Rate limit GitHub API tercapai saat mengambil diff commit.",
+      429,
+    );
+  }
+  if (!res.ok) {
+    throw new GithubSyncError(
+      "Gagal mengambil diff commit dari GitHub.",
+      res.status,
+    );
+  }
+
+  const rawDiff = await res.text();
+  return sanitizeCodeOrDiff(rawDiff);
 }

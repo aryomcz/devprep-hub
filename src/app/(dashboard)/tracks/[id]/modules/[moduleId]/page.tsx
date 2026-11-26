@@ -5,13 +5,16 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ModuleTabs } from "@/components/tracks/ModuleTabs";
+import type { LabSubmissionHistoryItem } from "@/components/tracks/CodeReviewPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
 import type { CachedCuratedResource } from "@/services/external/hybrid-sourcing";
 import {
+  aiReviewFeedbackSchema,
   conceptBriefSchema,
+  generatedInterviewQuestionsSchema,
   handsOnTicketSchema,
   warmupDrillsSchema,
 } from "@/types/schemas";
@@ -60,7 +63,7 @@ async function ModuleWorkspaceLoader({
     notFound();
   }
 
-  const [skillRes, resourcesRes] = await Promise.all([
+  const [skillRes, resourcesRes, submissionsRes] = await Promise.all([
     supabase
       .from("skills")
       .select("id, name, slug, category")
@@ -72,6 +75,15 @@ async function ModuleWorkspaceLoader({
       .select("id, skill_id, source, title, url, summary, fetched_at")
       .eq("skill_id", mod.skill_id)
       .order("fetched_at", { ascending: false }),
+    supabase
+      .from("lab_submissions")
+      .select(
+        "id, repo_commit_url, passed, submitted_at, ai_review_feedback, generated_interview_qs",
+      )
+      .eq("module_id", moduleId)
+      .eq("user_id", user.id)
+      .order("submitted_at", { ascending: false })
+      .limit(10),
   ]);
 
   const skill = skillRes.data;
@@ -82,6 +94,22 @@ async function ModuleWorkspaceLoader({
   const parsedBrief = conceptBriefSchema.safeParse(mod.concept_brief);
   const parsedDrills = warmupDrillsSchema.safeParse(mod.warmup_drills);
   const parsedTicket = handsOnTicketSchema.safeParse(mod.hands_on_ticket);
+  const initialSubmissions: LabSubmissionHistoryItem[] = (
+    submissionsRes.data ?? []
+  ).map((sub) => {
+    const parsedFb = aiReviewFeedbackSchema.safeParse(sub.ai_review_feedback);
+    const parsedQs = generatedInterviewQuestionsSchema.safeParse(
+      sub.generated_interview_qs,
+    );
+    return {
+      id: sub.id,
+      repo_commit_url: sub.repo_commit_url,
+      passed: sub.passed,
+      submitted_at: sub.submitted_at,
+      feedback: parsedFb.success ? parsedFb.data : null,
+      interview_questions: parsedQs.success ? parsedQs.data : [],
+    };
+  });
 
   return (
     <div className="space-y-5">
@@ -123,6 +151,7 @@ async function ModuleWorkspaceLoader({
         initialResources={
           (resourcesRes.data ?? []) as CachedCuratedResource[]
         }
+        initialSubmissions={initialSubmissions}
       />
     </div>
   );

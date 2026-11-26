@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  fetchSanitizedCommitDiff,
   fetchUserGithubSkills,
   GithubSyncError,
 } from "@/services/external/github";
@@ -110,5 +111,53 @@ describe("fetchUserGithubSkills", () => {
     await expect(
       fetchUserGithubSkills("aryo", { fetchFn: rateLimitFetch }),
     ).rejects.toMatchObject({ status: 429 });
+  });
+});
+
+describe("fetchSanitizedCommitDiff", () => {
+  it("fetches GitHub commit diff with 4s AbortSignal and strips lockfiles", async () => {
+    let seenUrl = "";
+    let seenAccept = "";
+    let seenSignal: AbortSignal | null | undefined;
+
+    const mockFetch: typeof fetch = vi.fn(async (input, init) => {
+      seenUrl = typeof input === "string" ? input : input.toString();
+      seenAccept = new Headers(init?.headers).get("Accept") ?? "";
+      seenSignal = init?.signal;
+
+      return new Response(
+        [
+          "diff --git a/package-lock.json b/package-lock.json",
+          "+noise",
+          "diff --git a/src/handler.ts b/src/handler.ts",
+          "+export const ok = true;",
+        ].join("\n"),
+        { status: 200 },
+      );
+    });
+
+    const result = await fetchSanitizedCommitDiff(
+      "https://github.com/aryo/capstone-app/commit/abc1234def",
+      { fetchFn: mockFetch, token: "tok" },
+    );
+
+    expect(seenUrl).toBe(
+      "https://api.github.com/repos/aryo/capstone-app/commits/abc1234def",
+    );
+    expect(seenAccept).toBe("application/vnd.github.v3.diff");
+    expect(seenSignal).toBeInstanceOf(AbortSignal);
+    expect(result.skippedFiles).toEqual(["package-lock.json"]);
+    expect(result.sanitizedText).toContain("src/handler.ts");
+    expect(result.sanitizedText).not.toContain("package-lock.json");
+  });
+
+  it("rejects invalid commit URLs without calling fetch", async () => {
+    const mockFetch = vi.fn();
+    await expect(
+      fetchSanitizedCommitDiff("https://example.com/not-github", {
+        fetchFn: mockFetch as unknown as typeof fetch,
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 });

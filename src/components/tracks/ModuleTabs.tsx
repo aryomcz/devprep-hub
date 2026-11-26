@@ -23,6 +23,10 @@ import {
   useTransition,
 } from "react";
 import { saveToNoteAction } from "@/actions/notes";
+import {
+  CodeReviewPanel,
+  type LabSubmissionHistoryItem,
+} from "@/components/tracks/CodeReviewPanel";
 import { InlineBlankDrillRunner } from "@/components/tracks/InlineBlankDrillRunner";
 import { ProgressiveHints } from "@/components/tracks/ProgressiveHints";
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +77,7 @@ type ModuleWorkspaceProps = {
     category: SkillCategory;
   };
   initialResources: CachedCuratedResource[];
+  initialSubmissions?: LabSubmissionHistoryItem[];
 };
 
 export function ModuleTabs({
@@ -80,6 +85,7 @@ export function ModuleTabs({
   moduleData,
   skill,
   initialResources,
+  initialSubmissions = [],
 }: ModuleWorkspaceProps) {
   const router = useRouter();
   const autoTriggeredRef = useRef(false);
@@ -399,15 +405,12 @@ export function ModuleTabs({
       </TabsContent>
 
       <TabsContent value="review">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Code Submission &amp; Review</CardTitle>
-            <CardDescription>
-              Panel kirim potongan kode / commit GitHub dan pembuatan otomatis 2
-              InterviewCard baru akan disambungkan pada Step 4.4.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <CodeReviewPanel
+          trackId={track.id}
+          moduleId={moduleData.id}
+          skillName={skill.name}
+          initialSubmissions={initialSubmissions}
+        />
       </TabsContent>
     </Tabs>
   );
