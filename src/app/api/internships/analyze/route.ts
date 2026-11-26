@@ -1,7 +1,11 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
-import { GeminiApiError, GeminiRateLimitError } from "@/lib/gemini";
+import {
+  describeFetchError,
+  GeminiApiError,
+  GeminiRateLimitError,
+} from "@/lib/gemini";
 import { createClient } from "@/lib/supabase/server";
 import {
   analyzeInternshipInput,
@@ -123,11 +127,12 @@ export async function POST(request: NextRequest) {
         error.status >= 400 && error.status < 600 ? error.status : 502;
       return NextResponse.json({ error: error.message }, { status });
     }
+    console.error("[/api/internships/analyze]", error);
     return NextResponse.json(
       {
         error:
           error instanceof Error
-            ? error.message
+            ? describeFetchError(error)
             : "Gagal menganalisis lowongan magang.",
       },
       { status: 500 },

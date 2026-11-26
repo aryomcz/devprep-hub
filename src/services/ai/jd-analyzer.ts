@@ -35,13 +35,42 @@ export type InternshipAnalysisResult = {
   jargon_glossary: JargonEntry[];
 };
 
+const CATEGORY_MAP: Record<string, SkillCategory> = {
+  language: "language",
+  framework: "framework",
+  concept: "concept",
+  tool: "tool",
+  library: "framework",
+  runtime: "framework",
+  database: "tool",
+  db: "tool",
+  platform: "tool",
+  cloud: "tool",
+  service: "tool",
+  devops: "tool",
+  architecture: "concept",
+  methodology: "concept",
+  pattern: "concept",
+  protocol: "concept",
+};
+
 const rawAiAnalysisSchema = z.object({
   skills: z
     .array(
       z.object({
         name: z.string().trim().min(1),
-        category: skillCategorySchema,
-        priority: skillPrioritySchema,
+        category: z
+          .string()
+          .transform((val) => CATEGORY_MAP[val.trim().toLowerCase()] ?? "tool")
+          .pipe(skillCategorySchema),
+        priority: z
+          .string()
+          .transform((val) =>
+            val.trim().toLowerCase() === "nice_to_have"
+              ? "nice_to_have"
+              : "must_have",
+          )
+          .pipe(skillPrioritySchema),
       }),
     )
     .min(1),
@@ -53,43 +82,6 @@ export type RawAiAnalysisOutput = z.infer<typeof rawAiAnalysisSchema>;
 export type GenerateAnalysisFn = (
   prompt: string,
 ) => Promise<RawAiAnalysisOutput>;
-
-const GEMINI_ANALYSIS_SCHEMA: Record<string, unknown> = {
-  type: "OBJECT",
-  properties: {
-    skills: {
-      type: "ARRAY",
-      items: {
-        type: "OBJECT",
-        properties: {
-          name: { type: "STRING" },
-          category: {
-            type: "STRING",
-            enum: ["language", "framework", "concept", "tool"],
-          },
-          priority: {
-            type: "STRING",
-            enum: ["must_have", "nice_to_have"],
-          },
-        },
-        required: ["name", "category", "priority"],
-      },
-    },
-    jargon_glossary: {
-      type: "ARRAY",
-      items: {
-        type: "OBJECT",
-        properties: {
-          term: { type: "STRING" },
-          definition: { type: "STRING" },
-          context: { type: "STRING" },
-        },
-        required: ["term", "definition", "context"],
-      },
-    },
-  },
-  required: ["skills", "jargon_glossary"],
-};
 
 const SOFT_SKILL_SLUGS = new Set([
   "communication",
@@ -147,12 +139,13 @@ function buildAnalysisPrompt(
     "Tugas: Ekstrak HARD ENGINEERING SKILLS dan JARGON TEKNIS/INDUSTRI dalam format JSON.",
     "",
     "ATURAN KETAT:",
-    "1. HANYA ekstrak hard engineering skills dengan category: language | framework | concept | tool.",
+    "1. HANYA ekstrak hard engineering skills dan isi category HANYA dengan salah satu dari 4 nilai persis ini: language | framework | concept | tool (database/Redis/MongoDB/PostgreSQL -> tool; library/runtime -> framework; arsitektur/SOLID/microservices/unit test -> concept). JANGAN gunakan nilai lain seperti database atau platform.",
     "2. DILARANG mengekstrak soft skills atau atribut HR (seperti communication, teamwork, team player, leadership, problem solving, time management, fast learner, adaptability, English).",
     "3. Gunakan nama skill eksisting di bawah ini apa adanya jika cocok secara semantik (Layer 2 deduplication):",
     existingLines,
     "4. Tentukan priority: must_have (wajib/inti) atau nice_to_have (nilai tambah).",
     "5. Untuk jargon_glossary, pilih istilah teknis/domain spesifik beserta definition ringkas dan context di lowongan (dalam Bahasa Indonesia yang jelas).",
+    '6. Kembalikan JSON persis sesuai struktur: {"skills":[{"name":"string","category":"language|framework|concept|tool","priority":"must_have|nice_to_have"}],"jargon_glossary":[{"term":"string","definition":"string","context":"string"}]}.',
     "",
     sourceBlock,
   ].join("\n");
@@ -161,7 +154,6 @@ function buildAnalysisPrompt(
 function defaultGenerateFn(prompt: string): Promise<RawAiAnalysisOutput> {
   return generateStructuredJson({
     prompt,
-    jsonSchema: GEMINI_ANALYSIS_SCHEMA,
     schema: rawAiAnalysisSchema,
   });
 }

@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-const DEFAULT_MODEL = "gemini-2.5-flash";
-const DEFAULT_TIMEOUT_MS = 20_000;
+const DEFAULT_MODEL = "gemini-3.5-flash-lite";
+const FALLBACK_MODEL = "gemini-3-flash-preview";
+const DEFAULT_TIMEOUT_MS = 14_000;
 const DEFAULT_RETRY_DELAY_MS = 250;
 
 export class GeminiRateLimitError extends Error {
@@ -45,6 +46,38 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export function describeFetchError(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return "Gagal menghubungi Gemini API.";
+  }
+
+  const cause = (error as { cause?: unknown }).cause;
+  if (!cause || typeof cause !== "object") {
+    return error.message;
+  }
+
+  const record = cause as {
+    code?: unknown;
+    message?: unknown;
+    errors?: Array<{ code?: unknown; message?: unknown }>;
+  };
+
+  const nested = Array.isArray(record.errors)
+    ? record.errors
+        .map((item) =>
+          [item.code, item.message].filter((v) => typeof v === "string" && v).join(": "),
+        )
+        .filter(Boolean)
+        .join("; ")
+    : "";
+
+  const detail = [record.code, record.message, nested]
+    .filter((v): v is string => typeof v === "string" && v.length > 0)
+    .join(" — ");
+
+  return detail ? `${error.message} (${detail})` : error.message;
+}
+
 function stripJsonFence(raw: string): string {
   const trimmed = raw.trim();
   const match = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
@@ -86,30 +119,37 @@ export async function generateStructuredJson<T>(
     );
   }
 
-  const model = options.model ?? DEFAULT_MODEL;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const maxRetries = Math.min(1, Math.max(0, options.maxRetries ?? 1));
   const retryDelayMs = options.retryDelayMs ?? DEFAULT_RETRY_DELAY_MS;
   const fetchFn = options.fetchFn ?? fetch;
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-
-  const body: Record<string, unknown> = {
-    contents: [{ role: "user", parts: [{ text: options.prompt }] }],
-    generationConfig: {
-      responseMimeType: "application/json",
-      temperature: 0.2,
-      ...(options.jsonSchema ? { responseSchema: options.jsonSchema } : {}),
-    },
-  };
-
-  if (options.systemInstruction) {
-    body.systemInstruction = {
-      parts: [{ text: options.systemInstruction }],
-    };
-  }
-
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const activeModel =
+      options.model ?? (attempt === 0 ? DEFAULT_MODEL : FALLBACK_MODEL);
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(activeModel)}:generateContent`;
+    const supportsMinimalThinking =
+      activeModel.startsWith("gemini-3.5-flash-lite") ||
+      activeModel.startsWith("gemini-3.1-flash-lite");
+
+    // Omit responseSchema on Free Tier to avoid congested grammar-decoding 503/timeouts; Zod enforces the contract.
+    const body: Record<string, unknown> = {
+      contents: [{ role: "user", parts: [{ text: options.prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.2,
+        ...(supportsMinimalThinking
+          ? { thinkingConfig: { thinkingLevel: "MINIMAL" } }
+          : {}),
+      },
+    };
+
+    if (options.systemInstruction) {
+      body.systemInstruction = {
+        parts: [{ text: options.systemInstruction }],
+      };
+    }
+
     try {
       const response = await fetchFn(endpoint, {
         method: "POST",
@@ -160,11 +200,21 @@ export async function generateStructuredJson<T>(
 
       return options.schema.parse(parsedJson);
     } catch (error) {
+      const isTimeoutOrAbort =
+        error instanceof Error &&
+        (error.name === "TimeoutError" || error.name === "AbortError");
+      const canFallbackOnTimeout =
+        isTimeoutOrAbort && !options.model && attempt < maxRetries;
+
       if (
         error instanceof GeminiRateLimitError ||
         (error instanceof GeminiApiError && error.status < 500) ||
-        error instanceof z.ZodError
+        error instanceof z.ZodError ||
+        (isTimeoutOrAbort && !canFallbackOnTimeout)
       ) {
+        if (isTimeoutOrAbort) {
+          throw new GeminiApiError(describeFetchError(error), 504);
+        }
         throw error;
       }
 
@@ -177,12 +227,7 @@ export async function generateStructuredJson<T>(
         throw error;
       }
 
-      throw new GeminiApiError(
-        error instanceof Error
-          ? error.message
-          : "Gagal menghubungi Gemini API.",
-        502,
-      );
+      throw new GeminiApiError(describeFetchError(error), 502);
     }
   }
 
