@@ -80,16 +80,16 @@ feat(internships): add jd analyze endpoint, readiness meter UI, and jargon save-
 - `src/services/external/__tests__/hybrid-sourcing.test.ts` *(baru)*
 
 ### Tugas
-- [ ] Buat adapter `src/services/external/devto.ts` (pencarian artikel berdasarkan tag/slug `Skill` dengan `AbortSignal.timeout(4000)` dan *injected fetch* di *seam*).
-- [ ] Bangun *deep module* `src/services/external/hybrid-sourcing.ts` (`getOrFetchCuratedResources({ skillId, skillName, skillSlug }, storeAdapter, sourceAdapters?)`):
+- [x] Buat adapter `src/services/external/devto.ts` (pencarian artikel berdasarkan tag/slug `Skill` dengan `AbortSignal.timeout(4000)` dan *injected fetch* di *seam*).
+- [x] Bangun *deep module* `src/services/external/hybrid-sourcing.ts` (`getOrFetchCuratedResources({ skillId, skillName, skillSlug }, storeAdapter, sourceAdapters?)`):
   - Periksa cache `curated_resources` untuk `skillId` dengan `fetched_at >= NOW() - 7 days`; jika sudah ada, kembalikan langsung tanpa memanggil API eksternal.
   - Jika kosong/kedaluwarsa, panggil Dev.to, Stack Exchange, dan Wikipedia/MDN secara paralel memakai `Promise.allSettled` dengan timeout maks. 4 detik per sumber.
   - Gabungkan dan deduplikasi URL unik, lalu simpan ke `curated_resources` (`upsert` terhadap `UNIQUE (skill_id, url)`).
-- [ ] Tulis `src/services/external/__tests__/hybrid-sourcing.test.ts` menggunakan *in-memory store adapter* dan *mock source adapters* untuk memverifikasi: hit cache < 7 hari (0 panggilan API), refresh saat > 7 hari, ketahanan saat 1–2 sumber gagal/timeout, dan deduplikasi URL.
+- [x] Tulis `src/services/external/__tests__/hybrid-sourcing.test.ts` menggunakan *in-memory store adapter* dan *mock source adapters* untuk memverifikasi: hit cache < 7 hari (0 panggilan API), refresh saat > 7 hari, ketahanan saat 1–2 sumber gagal/timeout, dan deduplikasi URL.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`hybrid-sourcing.test.ts` hijau).
-- [ ] Cek batas modul: `hybrid-sourcing.ts` tidak mengimpor modul Next.js maupun membuat instansi klien Supabase global secara hardcoded (menerima port/adapter penyimpanan lewat argumen).
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`hybrid-sourcing.test.ts` hijau).
+- [x] Cek batas modul: `hybrid-sourcing.ts` tidak mengimpor modul Next.js maupun membuat instansi klien Supabase global secara hardcoded (menerima port/adapter penyimpanan lewat argumen).
 
 ### Saran Conventional Commit
 ```text
@@ -134,3 +134,4 @@ feat(digest): add daily engineering digest cron endpoint and digest archive page
 
 - **2026-11-26 — Step 3.1 (Selesai & Di-commit):** Wrapper server-only `src/lib/gemini.ts` (Structured JSON Output, `GeminiRateLimitError` 429, maks. 1 *retry* ringan) serta *deep service* `src/services/ai/jd-analyzer.ts` + `jd-analyzer.test.ts` (4/4 test lulus, total 50/50 hijau). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
 - **2026-11-26 — Step 3.2 (Selesai & Di-commit):** Endpoint `POST /api/internships/analyze` (`maxDuration = 30`, RPC atomik `save_internship_analysis` tanpa *Hybrid Sourcing*), `src/actions/internships.ts`, UI `JDAnalyzerForm.tsx`, `ReadinessCard.tsx`, `JargonList.tsx`, `/internships`, `/internships/[id]`, serta pembaruan `src/lib/gemini.ts` ke `gemini-3.5-flash-lite` + fallback. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (50/50), `npm run build`, dan uji live Gemini API.
+- **2026-11-26 — Step 3.3 (Selesai & Di-commit):** Adapter `src/services/external/devto.ts` dan *deep service* `src/services/external/hybrid-sourcing.ts` + `hybrid-sourcing.test.ts` (4/4 lulus, cache 7 hari, `Promise.allSettled` timeout 4s, deduplikasi URL). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test` (54/54).

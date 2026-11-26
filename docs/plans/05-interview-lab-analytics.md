@@ -47,17 +47,17 @@ feat(interview): add spaced repetition scheduler and interview card/attempt acti
 - `src/app/(dashboard)/interview/page.tsx` *(baru)*
 
 ### Tugas
-- [ ] Bangun `src/components/interview/SpacedRepetitionQueue.tsx`: tampilkan daftar `InterviewCard` yang jatuh tempo hari ini (`next_review_at <= NOW()`) maupun kartu terjadwal mendatang, lengkap dengan badge `Skill`, sumber kartu (`lab_review | skill_gap | manual`), `review_count`, filter per `Skill`, serta modal/form tambah kartu manual atau seed dari `skill_gap`.
-- [ ] Bangun `src/components/interview/InterviewTimer.tsx`:
+- [x] Bangun `src/components/interview/SpacedRepetitionQueue.tsx`: tampilkan daftar `InterviewCard` yang jatuh tempo hari ini (`next_review_at <= NOW()`) maupun kartu terjadwal mendatang, lengkap dengan badge `Skill`, sumber kartu (`lab_review | skill_gap | manual`), `review_count`, filter per `Skill`, serta modal/form tambah kartu manual atau seed dari `skill_gap`.
+- [x] Bangun `src/components/interview/InterviewTimer.tsx`:
   - *Countdown timer* default 2 menit (120 detik) dengan tombol Mulai, Jeda, dan Reset yang mencatat `duration_seconds` aktual.
   - Panduan terstruktur kerangka 3 poin: *(1) Definisi, (2) Masalah yang diselesaikan, (3) Trade-off & batasan* beserta `<textarea>` catatan jawaban (`user_notes`).
   - Tombol evaluasi mandiri (`confused` → +2 hari, `partial` → +5 hari, `ready` → +14 hari) yang memanggil `submitInterviewAttemptAction`, serta panel riwayat `InterviewAttempt` sebelumnya pada kartu yang sama.
-- [ ] Bangun halaman `src/app/(dashboard)/interview/page.tsx` untuk memuat antrean `InterviewCard`, daftar `Skill`, dan riwayat `InterviewAttempt` terbaru.
+- [x] Bangun halaman `src/app/(dashboard)/interview/page.tsx` untuk memuat antrean `InterviewCard`, daftar `Skill`, dan riwayat `InterviewAttempt` terbaru.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
-- [ ] `npm run build` lulus.
-- [ ] Verifikasi lokal: latih 1 `InterviewCard` hasil `lab_review`, pilih `partial`, pastikan baris baru masuk ke `interview_attempts`, `next_review_at` bergeser +5 hari sehingga kartu keluar dari antrean *due* hari ini, dan `MasteryScore` skill terkait terbarui.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus.
+- [x] `npm run build` lulus.
+- [x] Verifikasi lokal: latih 1 `InterviewCard` hasil `lab_review`, pilih `partial`, pastikan baris baru masuk ke `interview_attempts`, `next_review_at` bergeser +5 hari sehingga kartu keluar dari antrean *due* hari ini, dan `MasteryScore` skill terkait terbarui.
 
 ### Saran Conventional Commit
 ```text
@@ -106,3 +106,4 @@ feat(dashboard): add deterministic todays focus card, mastery analytics, and fin
 ## Handoff Log
 
 - **2026-11-27 — Step 5.1 (Selesai & Di-commit):** Modul murni `src/lib/spaced-repetition.ts` + `spaced-repetition.test.ts` (3/3 lulus, total 75/75 test hijau) dan Server Actions `src/actions/interview.ts` (`createInterviewCardAction` & `submitInterviewAttemptAction`). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
+- **2026-11-27 — Step 5.2 (Selesai & Di-commit):** `SpacedRepetitionQueue.tsx`, `InterviewTimer.tsx` (timer 2 menit, kerangka 3 poin, evaluasi mandiri +2/+5/+14 hari, riwayat sesi), dan halaman `/interview`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (75/75), dan `npm run build`.
