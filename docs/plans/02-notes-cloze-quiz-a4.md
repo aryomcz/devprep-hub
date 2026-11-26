@@ -17,19 +17,19 @@
 - `src/lib/__tests__/cloze-parser.test.ts` *(baru)*
 
 ### Tugas
-- [ ] Tulis unit test (`tdd`) terlebih dahulu di `src/lib/__tests__/cloze-parser.test.ts` yang mencakup seluruh *edge case* `ADR-004`:
+- [x] Tulis unit test (`tdd`) terlebih dahulu di `src/lib/__tests__/cloze-parser.test.ts` yang mencakup seluruh *edge case* `ADR-004`:
   - Prosa biasa: `{{jawaban}}` dan `{{jawaban::petunjuk}}`.
   - Escape literal: `\{\{bukan_cloze\}\}` tetap dirender sebagai `{{bukan_cloze}}` tanpa menjadi soal.
   - Blok kode *fenced* (` ```...``` `, `~~~...~~~`) & *inline code* (`` `...` ``): `{{...}}` di dalamnya **diabaikan** agar JSX (`style={{ color: 'red' }}`), GitHub Actions (`${{ secrets.TOKEN }}`), dan Mustache aman.
   - Opt-in eksplisit di dalam kode: `{{cloze:jawaban}}` dan `{{cloze:jawaban::petunjuk}}` diekstrak sebagai soal.
   - Penolakan: `{{}}` kosong, `{{   }}` hanya spasi, dan *cloze* lintas baris (*multiline*) tidak dianggap soal.
   - Evaluasi jawaban (`evaluateClozeAnswer`): *trim* spasi berlebih, normalisasi spasi ganda, *case-insensitive* untuk prosa dan sensitivitas opsi untuk *cloze* dari kode.
-- [ ] Implementasikan `parseClozeMarkdown(markdown)` (menghasilkan `{ items: ClozeItem[], renderedPrompt, clozeCount }`) dan `evaluateClozeAnswer(userInput, expectedAnswer, isCodeCloze)` secara *state-aware* (melacak state *fenced code block* & *inline backtick*) di `src/lib/cloze-parser.ts`.
+- [x] Implementasikan `parseClozeMarkdown(markdown)` (menghasilkan `{ items: ClozeItem[], renderedPrompt, clozeCount }`) dan `evaluateClozeAnswer(userInput, expectedAnswer, isCodeCloze)` secara *state-aware* (melacak state *fenced code block* & *inline backtick*) di `src/lib/cloze-parser.ts`.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit` dan `npm run lint` lulus.
-- [ ] `npm test` menjalankan seluruh kasus `cloze-parser.test.ts` dan lulus 100%.
-- [ ] `src/lib/cloze-parser.ts` tidak memiliki dependensi I/O, React, ataupun Next.js.
+- [x] `npx tsc --noEmit` dan `npm run lint` lulus.
+- [x] `npm test` menjalankan seluruh kasus `cloze-parser.test.ts` dan lulus 100%.
+- [x] `src/lib/cloze-parser.ts` tidak memiliki dependensi I/O, React, ataupun Next.js.
 
 ### Saran Conventional Commit
 ```text
@@ -138,4 +138,4 @@ feat(quiz): add cloze quiz runner, mastery score update, and A4 print view
 
 ## Handoff Log
 
-*(Kosong — akan diisi setelah setiap sub-step dikonfirmasi lulus verifikasi)*
+- **2026-11-26 — Step 2.1 (Selesai & Di-commit):** Parser *state-aware* `src/lib/cloze-parser.ts` (`parseClozeMarkdown`, `evaluateClozeAnswer`) beserta `src/lib/__tests__/cloze-parser.test.ts` (7/7 lulus, total 43/43 test hijau). Lulus `npm test`, `npx tsc --noEmit`, dan `npm run lint` tanpa dependensi eksternal.

@@ -157,15 +157,15 @@ feat(skills): add skill normalizer, dynamic mastery calculator, and skills direc
 - `src/components/skills/SkillTable.tsx` *(modifikasi: tambah tombol & status Sync GitHub)*
 
 ### Tugas
-- [ ] Bangun *deep module* `src/services/external/github.ts`: ekspor `fetchUserGithubSkills(username, options)` dengan *injected fetch adapter* pada *seam* argumen, batas ketat **maks. 20 repo publik non-fork terbaru** (`sort=updated`, `type=owner`), timeout `AbortSignal.timeout(4000)`, ekstraksi bahasa utama + `topics` + dependensi manifes umum (misal `package.json`), lalu normalisasi setiap item memakai `src/lib/skill-normalizer.ts`.
-- [ ] Tulis `src/services/external/__tests__/github.test.ts` menggunakan mock fetch adapter untuk memverifikasi: pemfilteran repo fork, pembatasan maks. 20 repo, deduplikasi hasil ekstraksi, dan penanganan error/rate-limit GitHub API.
-- [ ] Buat Route Handler tipis `src/app/api/github/sync/route.ts`: validasi `requireAllowedUser`, baca `GITHUB_TOKEN` di sisi server, panggil `fetchUserGithubSkills`, *upsert* `Skill` baru dengan `source = 'github'`, `mastery_score = 40`, `status = 'learning'` (tanpa menurunkan `mastery_score` skill yang sudah lebih tinggi), dan perbarui `profiles.github_username` + `profiles.last_github_sync`.
-- [ ] Sambungkan form/tombol **Sync GitHub** di `/skills` untuk memicu `POST /api/github/sync` dan menampilkan `last_github_sync` beserta jumlah skill baru yang terpetakan.
+- [x] Bangun *deep module* `src/services/external/github.ts`: ekspor `fetchUserGithubSkills(username, options)` dengan *injected fetch adapter* pada *seam* argumen, batas ketat **maks. 20 repo publik non-fork terbaru** (`sort=updated`, `type=owner`), timeout `AbortSignal.timeout(4000)`, ekstraksi bahasa utama + `topics` + dependensi manifes umum (misal `package.json`), lalu normalisasi setiap item memakai `src/lib/skill-normalizer.ts`.
+- [x] Tulis `src/services/external/__tests__/github.test.ts` menggunakan mock fetch adapter untuk memverifikasi: pemfilteran repo fork, pembatasan maks. 20 repo, deduplikasi hasil ekstraksi, dan penanganan error/rate-limit GitHub API.
+- [x] Buat Route Handler tipis `src/app/api/github/sync/route.ts`: validasi `requireAllowedUser`, baca `GITHUB_TOKEN` di sisi server, panggil `fetchUserGithubSkills`, *upsert* `Skill` baru dengan `source = 'github'`, `mastery_score = 40`, `status = 'learning'` (tanpa menurunkan `mastery_score` skill yang sudah lebih tinggi), dan perbarui `profiles.github_username` + `profiles.last_github_sync`.
+- [x] Sambungkan form/tombol **Sync GitHub** di `/skills` untuk memicu `POST /api/github/sync` dan menampilkan `last_github_sync` beserta jumlah skill baru yang terpetakan.
 
 ### Verification Checklist
-- [ ] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`github.test.ts` hijau tanpa panggilan jaringan asli).
-- [ ] `npm run build` lulus.
-- [ ] Cek keamanan: `GITHUB_TOKEN` hanya dibaca di server (`route.ts` / `services/external/github.ts`) dan `src/services/external/github.ts` bersih dari import Next.js.
+- [x] `npx tsc --noEmit`, `npm run lint`, dan `npm test` lulus (`github.test.ts` hijau tanpa panggilan jaringan asli).
+- [x] `npm run build` lulus.
+- [x] Cek keamanan: `GITHUB_TOKEN` hanya dibaca di server (`route.ts` / `services/external/github.ts`) dan `src/services/external/github.ts` bersih dari import Next.js.
 
 ### Saran Conventional Commit
 ```text
@@ -179,3 +179,4 @@ feat(github): add github repository sync service and route handler
 - **2026-11-25 — Step 1.1 (Selesai & Di-commit):** Migrasi SQL `supabase/migrations/0001_initial_schema_and_rls.sql` (14 enum, 13 tabel, RLS penuh, trigger `profiles`, RPC `save_internship_analysis` & `merge_skills`), kontrak TypeScript `src/types/database.ts`, kontrak Zod `src/types/schemas.ts`, unit test `src/types/__tests__/schemas.test.ts` (5/5 lulus), `vitest.config.ts`, dan `.env.example` (diperbarui ke `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` & `SUPABASE_SECRET_KEY`). Lulus `tsc --noEmit`, `npm run lint`, dan `npm test`.
 - **2026-11-25 — Step 1.2 (Selesai & Di-commit):** Modul `src/lib/auth-guard.ts` + test (5/5 lulus), klien Supabase SSR/admin, `src/proxy.ts` Next.js 16, halaman `/login` tanpa registrasi publik, dan shell `(dashboard)` berbasis `<Suspense>` (`cacheComponents: true`). Lulus `tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`, serta uji login lokal.
 - **2026-11-25 — Step 1.3 (Selesai & Di-commit):** Modul murni `src/lib/skill-normalizer.ts` + test (4/4), `src/lib/mastery.ts` + test (20/20), `src/actions/skills.ts` (CRUD, override skor, RPC `merge_skills`), `SkillTable.tsx`, `MergeSkillDialog.tsx`, `/skills`, plus migrasi `0002_backfill_profiles.sql` & `upsert` profil di layout. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (34/34), `npm run build`, dan uji CRUD/Merge/Normalisasi di `/skills`.
+- **2026-11-26 — Step 1.4 (Selesai & Lulus Verifikasi):** Deep service `src/services/external/github.ts` + test (2/2) dengan *injected `fetch` adapter*, timeout 4 detik, maks. 20 repo non-fork, Route Handler `POST /api/github/sync` (baseline 40 tanpa menurunkan skor `>= 40`), dan UI Sync GitHub di `/skills`. Lulus `tsc --noEmit`, `npm run lint`, `npm test` (36/36), `npm run build`, dan verifikasi pengguna.
