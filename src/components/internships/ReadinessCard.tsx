@@ -122,7 +122,10 @@ function StatusControls({
           onValueChange={handleStatusChange}
           disabled={isPending}
         >
-          <SelectTrigger className="h-8 w-36 text-xs">
+          <SelectTrigger
+            className="h-8 w-36 text-xs"
+            aria-label="Status lamaran magang"
+          >
             <SelectValue>{INTERNSHIP_STATUS_LABELS[currentStatus]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -285,7 +288,7 @@ export function InternshipsDirectory({
           value={statusFilter}
           onValueChange={(value) => setStatusFilter(value ?? "all")}
         >
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-48" aria-label="Filter status lamaran">
             <SelectValue>
               {statusFilter === "all"
                 ? "Semua Status Lamaran"

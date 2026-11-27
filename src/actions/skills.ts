@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
+import { formatActionError, requireAllowedUser } from "@/lib/auth-guard";
 import { deriveSkillStatus } from "@/lib/mastery";
 import { normalizeSkill } from "@/lib/skill-normalizer";
 import { createClient } from "@/lib/supabase/server";
@@ -34,15 +34,11 @@ const mergeSkillsInputSchema = z
   });
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof AuthGuardError) {
-    return error.status === 401
-      ? "Sesi berakhir. Silakan login kembali."
-      : "Akses ditolak oleh Single-User Gate.";
-  }
-  if (error instanceof z.ZodError) {
-    return error.issues[0]?.message ?? "Input tidak valid.";
-  }
-  return "Terjadi kesalahan saat memproses data skill.";
+  return formatActionError(
+    error,
+    "Input tidak valid.",
+    "Terjadi kesalahan saat memproses data skill.",
+  );
 }
 
 export async function createSkillAction(

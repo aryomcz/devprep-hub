@@ -58,6 +58,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { parseClozeMarkdown, type ClozeItem } from "@/lib/cloze-parser";
+import {
+  splitInlineMarkdownTokens,
+  tokenizeMarkdownBlocks,
+} from "@/lib/markdown-blocks";
 
 export type NoteSkillOption = {
   id: string;
@@ -79,8 +83,7 @@ function renderInlineWithCloze(
   itemMap: Map<string, ClozeItem>,
   keyPrefix: string,
 ): ReactNode[] {
-  const parts = text.split(/(___CLOZE_\d+___|``[^`]+``|`[^`]+`|\*\*[^*]+\*\*)/g);
-  return parts.filter(Boolean).map((part, idx) => {
+  return splitInlineMarkdownTokens(text).map((part, idx) => {
     const key = `${keyPrefix}-${idx}`;
     if (part.startsWith("___CLOZE_") && part.endsWith("___")) {
       const item = itemMap.get(part);
@@ -130,120 +133,73 @@ function renderMarkdownPreview(
   renderedPrompt: string,
   itemMap: Map<string, ClozeItem>,
 ): ReactNode[] {
-  const lines = renderedPrompt.split("\n");
-  const blocks: ReactNode[] = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-    const trimmed = line.trim();
-
-    if (/^(```|~~~)/.test(trimmed)) {
-      const marker = trimmed.startsWith("```") ? "```" : "~~~";
-      const lang = trimmed.slice(3).trim();
-      const codeLines: string[] = [];
-      i++;
-      while (i < lines.length && !lines[i].trim().startsWith(marker)) {
-        codeLines.push(lines[i]);
-        i++;
-      }
-      i++;
-      blocks.push(
-        <div key={`code-${i}`} className="space-y-1">
-          {lang ? (
-            <div className="text-[11px] font-medium uppercase text-muted-foreground">
-              {lang}
-            </div>
-          ) : null}
-          <pre className="overflow-x-auto rounded-lg border bg-muted/60 p-3 font-mono text-xs leading-relaxed">
-            <code>
-              {renderInlineWithCloze(
-                codeLines.join("\n"),
-                itemMap,
-                `fence-${i}`,
-              )}
-            </code>
-          </pre>
-        </div>,
-      );
-      continue;
+  return tokenizeMarkdownBlocks(renderedPrompt).map((block) => {
+    const i = block.lineIndex;
+    switch (block.type) {
+      case "code":
+        return (
+          <div key={`code-${i}`} className="space-y-1">
+            {block.lang ? (
+              <div className="text-[11px] font-medium uppercase text-muted-foreground">
+                {block.lang}
+              </div>
+            ) : null}
+            <pre className="overflow-x-auto rounded-lg border bg-muted/60 p-3 font-mono text-xs leading-relaxed">
+              <code>
+                {renderInlineWithCloze(block.content, itemMap, `fence-${i}`)}
+              </code>
+            </pre>
+          </div>
+        );
+      case "hr":
+        return <hr key={`hr-${i}`} className="border-border" />;
+      case "heading":
+        if (block.level === 1) {
+          return (
+            <h1 key={`h1-${i}`} className="pt-1 text-xl font-bold">
+              {renderInlineWithCloze(block.content, itemMap, `h1-${i}`)}
+            </h1>
+          );
+        }
+        if (block.level === 2) {
+          return (
+            <h2 key={`h2-${i}`} className="pt-2 text-lg font-semibold">
+              {renderInlineWithCloze(block.content, itemMap, `h2-${i}`)}
+            </h2>
+          );
+        }
+        return (
+          <h3 key={`h3-${i}`} className="pt-2 text-base font-semibold">
+            {renderInlineWithCloze(block.content, itemMap, `h3-${i}`)}
+          </h3>
+        );
+      case "blockquote":
+        return (
+          <blockquote
+            key={`quote-${i}`}
+            className="border-l-2 border-primary/40 pl-3 text-sm text-muted-foreground italic"
+          >
+            {renderInlineWithCloze(block.content, itemMap, `quote-${i}`)}
+          </blockquote>
+        );
+      case "list":
+        return (
+          <ul key={`list-${i}`} className="list-disc space-y-1 pl-5 text-sm">
+            {block.items.map((entry, idx) => (
+              <li key={`li-${i}-${idx}`}>
+                {renderInlineWithCloze(entry, itemMap, `li-${i}-${idx}`)}
+              </li>
+            ))}
+          </ul>
+        );
+      case "paragraph":
+        return (
+          <p key={`p-${i}`} className="text-sm leading-relaxed">
+            {renderInlineWithCloze(block.content, itemMap, `p-${i}`)}
+          </p>
+        );
     }
-
-    if (!trimmed) {
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("### ")) {
-      blocks.push(
-        <h3 key={`h3-${i}`} className="pt-2 text-base font-semibold">
-          {renderInlineWithCloze(trimmed.slice(4), itemMap, `h3-${i}`)}
-        </h3>,
-      );
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("## ")) {
-      blocks.push(
-        <h2 key={`h2-${i}`} className="pt-2 text-lg font-semibold">
-          {renderInlineWithCloze(trimmed.slice(3), itemMap, `h2-${i}`)}
-        </h2>,
-      );
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("# ")) {
-      blocks.push(
-        <h1 key={`h1-${i}`} className="pt-1 text-xl font-bold">
-          {renderInlineWithCloze(trimmed.slice(2), itemMap, `h1-${i}`)}
-        </h1>,
-      );
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("> ")) {
-      blocks.push(
-        <blockquote
-          key={`quote-${i}`}
-          className="border-l-2 border-primary/40 pl-3 text-sm text-muted-foreground italic"
-        >
-          {renderInlineWithCloze(trimmed.slice(2), itemMap, `quote-${i}`)}
-        </blockquote>,
-      );
-      i++;
-      continue;
-    }
-
-    if (/^([-*]|\d+\.)\s+/.test(trimmed)) {
-      const listItems: string[] = [];
-      while (i < lines.length && /^([-*]|\d+\.)\s+/.test(lines[i].trim())) {
-        listItems.push(lines[i].trim().replace(/^([-*]|\d+\.)\s+/, ""));
-        i++;
-      }
-      blocks.push(
-        <ul key={`list-${i}`} className="list-disc space-y-1 pl-5 text-sm">
-          {listItems.map((entry, idx) => (
-            <li key={`li-${i}-${idx}`}>
-              {renderInlineWithCloze(entry, itemMap, `li-${i}-${idx}`)}
-            </li>
-          ))}
-        </ul>,
-      );
-      continue;
-    }
-
-    blocks.push(
-      <p key={`p-${i}`} className="text-sm leading-relaxed">
-        {renderInlineWithCloze(line, itemMap, `p-${i}`)}
-      </p>,
-    );
-    i++;
-  }
-
-  return blocks;
+  });
 }
 
 export function NotesDirectory({
@@ -345,7 +301,7 @@ export function NotesDirectory({
             value={skillFilter}
             onValueChange={(value) => setSkillFilter(value ?? "all")}
           >
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48" aria-label="Filter skill catatan">
               <SelectValue>
                 {skillFilter === "all"
                   ? "Semua Skill"
@@ -410,14 +366,14 @@ export function NotesDirectory({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium">
+                <label htmlFor="note-skill-id" className="text-xs font-medium">
                   Skill Terkait (Opsional)
                 </label>
                 <Select
                   value={newSkillId}
                   onValueChange={(value) => setNewSkillId(value ?? "none")}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="note-skill-id" className="w-full">
                     <SelectValue>
                       {newSkillId === "none"
                         ? "Tanpa Skill"
@@ -754,7 +710,7 @@ export function MarkdownEditor({
             setStatusMessage(null);
           }}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full" aria-label="Skill terkait catatan">
             <SelectValue>
               {skillId === "none"
                 ? "Tanpa Skill"

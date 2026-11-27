@@ -327,7 +327,7 @@ export function SkillTable({
               value={categoryFilter}
               onValueChange={(value) => setCategoryFilter(value ?? "all")}
             >
-              <SelectTrigger className="w-36">
+              <SelectTrigger className="w-36" aria-label="Filter kategori skill">
                 <SelectValue>
                   {categoryFilter === "all"
                     ? "Semua Kategori"
@@ -347,7 +347,7 @@ export function SkillTable({
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value ?? "all")}
             >
-              <SelectTrigger className="w-36">
+              <SelectTrigger className="w-36" aria-label="Filter status skill">
                 <SelectValue>
                   {statusFilter === "all"
                     ? "Semua Status"
@@ -411,14 +411,16 @@ export function SkillTable({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-medium">Kategori</label>
+                      <label htmlFor="new-skill-category" className="text-xs font-medium">
+                        Kategori
+                      </label>
                       <Select
                         value={newCategory}
                         onValueChange={(value) =>
                           setNewCategory((value as SkillCategory) ?? "concept")
                         }
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger id="new-skill-category" className="w-full">
                           <SelectValue>
                             {CATEGORY_LABELS[newCategory]}
                           </SelectValue>
@@ -667,14 +669,16 @@ export function SkillTable({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium">Kategori</label>
+                  <label htmlFor="edit-skill-category" className="text-xs font-medium">
+                    Kategori
+                  </label>
                   <Select
                     value={editCategory}
                     onValueChange={(value) =>
                       setEditCategory((value as SkillCategory) ?? "concept")
                     }
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger id="edit-skill-category" className="w-full">
                       <SelectValue>{CATEGORY_LABELS[editCategory]}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>

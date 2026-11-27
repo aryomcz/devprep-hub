@@ -3,6 +3,8 @@ import { z } from "zod";
 import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
 import { lookupTechnicalTerm } from "@/services/external/lookup";
 
+export const maxDuration = 30;
+
 const querySchema = z
   .string()
   .trim()

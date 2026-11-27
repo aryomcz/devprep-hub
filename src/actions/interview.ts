@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
+import { formatActionError, requireAllowedUser } from "@/lib/auth-guard";
 import { calculateMasteryBreakdown } from "@/lib/mastery";
 import { calculateNextReview } from "@/lib/spaced-repetition";
 import { createClient } from "@/lib/supabase/server";
@@ -35,15 +35,11 @@ const submitInterviewAttemptSchema = z.object({
 });
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof AuthGuardError) {
-    return error.status === 401
-      ? "Sesi berakhir. Silakan login kembali."
-      : "Akses ditolak oleh Single-User Gate.";
-  }
-  if (error instanceof z.ZodError) {
-    return error.issues[0]?.message ?? "Input sesi wawancara tidak valid.";
-  }
-  return "Terjadi kesalahan saat memproses Interview Lab.";
+  return formatActionError(
+    error,
+    "Input sesi wawancara tidak valid.",
+    "Terjadi kesalahan saat memproses Interview Lab.",
+  );
 }
 
 export async function createInterviewCardAction(

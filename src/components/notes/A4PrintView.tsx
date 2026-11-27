@@ -6,6 +6,10 @@ import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { parseClozeMarkdown, type ClozeItem } from "@/lib/cloze-parser";
+import {
+  splitInlineMarkdownTokens,
+  tokenizeMarkdownBlocks,
+} from "@/lib/markdown-blocks";
 import type { Note } from "@/types/database";
 
 function renderPrintInline(
@@ -14,8 +18,7 @@ function renderPrintInline(
   showAnswers: boolean,
   keyPrefix: string,
 ): ReactNode[] {
-  const parts = text.split(/(___CLOZE_\d+___|``[^`]+``|`[^`]+`|\*\*[^*]+\*\*)/g);
-  return parts.filter(Boolean).map((part, idx) => {
+  return splitInlineMarkdownTokens(text).map((part, idx) => {
     const key = `${keyPrefix}-${idx}`;
     if (part.startsWith("___CLOZE_") && part.endsWith("___")) {
       const item = itemMap.get(part);
@@ -68,161 +71,97 @@ function renderPrintBlocks(
   itemMap: Map<string, ClozeItem>,
   showAnswers: boolean,
 ): ReactNode[] {
-  const lines = renderedPrompt.split("\n");
-  const blocks: ReactNode[] = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-    const trimmed = line.trim();
-
-    if (/^(```|~~~)/.test(trimmed)) {
-      const marker = trimmed.startsWith("```") ? "```" : "~~~";
-      const lang = trimmed.slice(3).trim();
-      const codeLines: string[] = [];
-      i++;
-      while (i < lines.length && !lines[i].trim().startsWith(marker)) {
-        codeLines.push(lines[i]);
-        i++;
-      }
-      i++;
-      blocks.push(
-        <div key={`code-${i}`} className="print-keep-together my-1.5">
-          {lang ? (
-            <div className="text-[9px] font-semibold uppercase text-neutral-500">
-              {lang}
-            </div>
-          ) : null}
-          <pre className="overflow-x-hidden whitespace-pre-wrap break-words rounded border border-neutral-300 bg-neutral-50 p-2 font-mono text-[8.5pt] leading-snug text-neutral-900">
-            <code>
-              {renderPrintInline(
-                codeLines.join("\n"),
-                itemMap,
-                showAnswers,
-                `fence-${i}`,
-              )}
-            </code>
-          </pre>
-        </div>,
-      );
-      continue;
+  return tokenizeMarkdownBlocks(renderedPrompt).map((block) => {
+    const i = block.lineIndex;
+    switch (block.type) {
+      case "code":
+        return (
+          <div key={`code-${i}`} className="print-keep-together my-1.5">
+            {block.lang ? (
+              <div className="text-[9px] font-semibold uppercase text-neutral-500">
+                {block.lang}
+              </div>
+            ) : null}
+            <pre className="overflow-x-hidden whitespace-pre-wrap break-words rounded border border-neutral-300 bg-neutral-50 p-2 font-mono text-[8.5pt] leading-snug text-neutral-900">
+              <code>
+                {renderPrintInline(
+                  block.content,
+                  itemMap,
+                  showAnswers,
+                  `fence-${i}`,
+                )}
+              </code>
+            </pre>
+          </div>
+        );
+      case "hr":
+        return <hr key={`hr-${i}`} className="my-2 border-neutral-300" />;
+      case "heading":
+        if (block.level === 1) {
+          return (
+            <h1
+              key={`h1-${i}`}
+              className="mt-2 mb-1 text-[12pt] font-bold text-neutral-950"
+            >
+              {renderPrintInline(block.content, itemMap, showAnswers, `h1-${i}`)}
+            </h1>
+          );
+        }
+        if (block.level === 2) {
+          return (
+            <h2
+              key={`h2-${i}`}
+              className="mt-3 mb-1 border-b border-neutral-300 pb-0.5 text-[11pt] font-bold text-neutral-900"
+            >
+              {renderPrintInline(block.content, itemMap, showAnswers, `h2-${i}`)}
+            </h2>
+          );
+        }
+        return (
+          <h3
+            key={`h3-${i}`}
+            className="mt-2.5 mb-1 text-[10pt] font-semibold text-neutral-900"
+          >
+            {renderPrintInline(block.content, itemMap, showAnswers, `h3-${i}`)}
+          </h3>
+        );
+      case "blockquote":
+        return (
+          <blockquote
+            key={`quote-${i}`}
+            className="my-1.5 border-l-2 border-neutral-400 pl-2.5 text-neutral-700 italic"
+          >
+            {renderPrintInline(
+              block.content,
+              itemMap,
+              showAnswers,
+              `quote-${i}`,
+            )}
+          </blockquote>
+        );
+      case "list":
+        return (
+          <ul key={`list-${i}`} className="my-1 list-disc space-y-0.5 pl-4">
+            {block.items.map((entry, idx) => (
+              <li key={`li-${i}-${idx}`}>
+                {renderPrintInline(
+                  entry,
+                  itemMap,
+                  showAnswers,
+                  `li-${i}-${idx}`,
+                )}
+              </li>
+            ))}
+          </ul>
+        );
+      case "paragraph":
+        return (
+          <p key={`p-${i}`} className="my-1">
+            {renderPrintInline(block.content, itemMap, showAnswers, `p-${i}`)}
+          </p>
+        );
     }
-
-    if (!trimmed) {
-      i++;
-      continue;
-    }
-
-    if (trimmed === "---" || trimmed === "***") {
-      blocks.push(<hr key={`hr-${i}`} className="my-2 border-neutral-300" />);
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("### ")) {
-      blocks.push(
-        <h3
-          key={`h3-${i}`}
-          className="mt-2.5 mb-1 text-[10pt] font-semibold text-neutral-900"
-        >
-          {renderPrintInline(
-            trimmed.slice(4),
-            itemMap,
-            showAnswers,
-            `h3-${i}`,
-          )}
-        </h3>,
-      );
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("## ")) {
-      blocks.push(
-        <h2
-          key={`h2-${i}`}
-          className="mt-3 mb-1 border-b border-neutral-300 pb-0.5 text-[11pt] font-bold text-neutral-900"
-        >
-          {renderPrintInline(
-            trimmed.slice(3),
-            itemMap,
-            showAnswers,
-            `h2-${i}`,
-          )}
-        </h2>,
-      );
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("# ")) {
-      blocks.push(
-        <h1
-          key={`h1-${i}`}
-          className="mt-2 mb-1 text-[12pt] font-bold text-neutral-950"
-        >
-          {renderPrintInline(
-            trimmed.slice(2),
-            itemMap,
-            showAnswers,
-            `h1-${i}`,
-          )}
-        </h1>,
-      );
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("> ")) {
-      blocks.push(
-        <blockquote
-          key={`quote-${i}`}
-          className="my-1.5 border-l-2 border-neutral-400 pl-2.5 text-neutral-700 italic"
-        >
-          {renderPrintInline(
-            trimmed.slice(2),
-            itemMap,
-            showAnswers,
-            `quote-${i}`,
-          )}
-        </blockquote>,
-      );
-      i++;
-      continue;
-    }
-
-    if (/^([-*]|\d+\.)\s+/.test(trimmed)) {
-      const listItems: string[] = [];
-      while (i < lines.length && /^([-*]|\d+\.)\s+/.test(lines[i].trim())) {
-        listItems.push(lines[i].trim().replace(/^([-*]|\d+\.)\s+/, ""));
-        i++;
-      }
-      blocks.push(
-        <ul key={`list-${i}`} className="my-1 list-disc space-y-0.5 pl-4">
-          {listItems.map((entry, idx) => (
-            <li key={`li-${i}-${idx}`}>
-              {renderPrintInline(
-                entry,
-                itemMap,
-                showAnswers,
-                `li-${i}-${idx}`,
-              )}
-            </li>
-          ))}
-        </ul>,
-      );
-      continue;
-    }
-
-    blocks.push(
-      <p key={`p-${i}`} className="my-1">
-        {renderPrintInline(line, itemMap, showAnswers, `p-${i}`)}
-      </p>,
-    );
-    i++;
-  }
-
-  return blocks;
+  });
 }
 
 export function A4PrintView({

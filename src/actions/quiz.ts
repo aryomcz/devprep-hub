@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
+import { formatActionError, requireAllowedUser } from "@/lib/auth-guard";
 import { calculateMasteryBreakdown } from "@/lib/mastery";
 import { createClient } from "@/lib/supabase/server";
 import type { SkillStatus } from "@/types/database";
@@ -24,15 +24,11 @@ const submitQuizAttemptSchema = z
   });
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof AuthGuardError) {
-    return error.status === 401
-      ? "Sesi berakhir. Silakan login kembali."
-      : "Akses ditolak oleh Single-User Gate.";
-  }
-  if (error instanceof z.ZodError) {
-    return error.issues[0]?.message ?? "Input kuis tidak valid.";
-  }
-  return "Terjadi kesalahan saat menyimpan hasil kuis.";
+  return formatActionError(
+    error,
+    "Input kuis tidak valid.",
+    "Terjadi kesalahan saat menyimpan hasil kuis.",
+  );
 }
 
 export async function submitQuizAttemptAction(

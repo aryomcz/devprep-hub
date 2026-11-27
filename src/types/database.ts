@@ -702,6 +702,39 @@ export type Database = {
         };
         Returns: Json;
       };
+      create_track_with_modules: {
+        Args: {
+          p_internship_id: string | null;
+          p_capstone_title: string;
+          p_capstone_description: string;
+          p_primary_stack: string;
+          p_architecture_overview: string;
+          p_modules: Json;
+        };
+        Returns: string;
+      };
+      complete_and_unlock_next_module: {
+        Args: {
+          p_track_id: string;
+          p_module_id: string;
+        };
+        Returns: Json;
+      };
+      submit_lab_review: {
+        Args: {
+          p_track_id: string;
+          p_module_id: string;
+          p_skill_id: string;
+          p_code_snippet: string;
+          p_repo_commit_url: string;
+          p_ai_review_feedback: Json;
+          p_interview_questions: Json;
+          p_passed: boolean;
+          p_mastery_score: number;
+          p_skill_status: SkillStatus;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       skill_category: SkillCategory;

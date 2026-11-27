@@ -51,10 +51,6 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
-    await supabase
-      .from("profiles")
-      .upsert({ id: user.id }, { onConflict: "id", ignoreDuplicates: true });
-
     const { internshipId, skillIds, languageMode } = parsed.data;
 
     const { data: userSkills, error: skillsError } = await supabase
@@ -156,54 +152,29 @@ export async function POST(request: NextRequest) {
       languageMode,
     });
 
-    const { data: trackRow, error: trackError } = await supabase
-      .from("learning_tracks")
-      .insert({
-        user_id: user.id,
-        internship_id: internshipId ?? null,
-        capstone_title: blueprint.capstone_title,
-        capstone_description: blueprint.capstone_description,
-        primary_stack: blueprint.primary_stack,
-        architecture_overview: blueprint.architecture_overview,
-        status: "active",
-      })
-      .select("id")
-      .single();
-
-    if (trackError || !trackRow) {
-      return NextResponse.json(
-        { error: trackError?.message ?? "Gagal menyimpan Learning Track." },
-        { status: 500 },
-      );
-    }
-
-    const moduleRows = blueprint.modules.map((mod, idx) => ({
-      track_id: trackRow.id,
+    const moduleInputs = blueprint.modules.map((mod) => ({
       skill_id: mod.skill_id,
       order_index: mod.order_index,
       module_type: mod.module_type,
       target_language: mod.target_language,
       objective: mod.objective,
-      content_status: "pending" as const,
-      concept_brief: null,
-      warmup_drills: null,
-      hands_on_ticket: null,
-      status: idx === 0 ? ("in_progress" as const) : ("locked" as const),
     }));
 
-    const { error: modulesError } = await supabase
-      .from("track_modules")
-      .insert(moduleRows);
+    const { data: trackId, error: trackRpcError } = await supabase.rpc(
+      "create_track_with_modules",
+      {
+        p_internship_id: internshipId ?? null,
+        p_capstone_title: blueprint.capstone_title,
+        p_capstone_description: blueprint.capstone_description,
+        p_primary_stack: blueprint.primary_stack,
+        p_architecture_overview: blueprint.architecture_overview,
+        p_modules: moduleInputs,
+      },
+    );
 
-    if (modulesError) {
-      await supabase
-        .from("learning_tracks")
-        .delete()
-        .eq("id", trackRow.id)
-        .eq("user_id", user.id);
-
+    if (trackRpcError || !trackId) {
       return NextResponse.json(
-        { error: modulesError.message },
+        { error: trackRpcError?.message ?? "Gagal menyimpan Learning Track." },
         { status: 500 },
       );
     }
@@ -214,8 +185,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ok: true,
-        trackId: trackRow.id,
-        moduleCount: moduleRows.length,
+        trackId,
+        moduleCount: moduleInputs.length,
       },
       { status: 201 },
     );

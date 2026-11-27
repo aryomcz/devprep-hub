@@ -49,10 +49,8 @@ export async function requireAllowedUser(
   if (getUserFn) {
     user = await getUserFn();
   } else {
-    const { createClient } = await import("@/lib/supabase/server");
-    const supabase = await createClient();
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
+    const { getAuthenticatedUser } = await import("@/lib/supabase/server");
+    user = await getAuthenticatedUser();
   }
 
   if (!user) {
@@ -63,4 +61,27 @@ export async function requireAllowedUser(
   }
 
   return { id: user.id, email: user.email! };
+}
+
+export function formatActionError(
+  error: unknown,
+  invalidFallback: string,
+  genericFallback: string,
+): string {
+  if (error instanceof AuthGuardError) {
+    return error.status === 401
+      ? "Sesi berakhir. Silakan login kembali."
+      : "Akses ditolak oleh Single-User Gate.";
+  }
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "issues" in error &&
+    Array.isArray((error as { issues?: unknown }).issues)
+  ) {
+    const firstIssue = (error as { issues: Array<{ message?: string }> })
+      .issues[0];
+    return firstIssue?.message ?? invalidFallback;
+  }
+  return genericFallback;
 }

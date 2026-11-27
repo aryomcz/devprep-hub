@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
+import { formatActionError, requireAllowedUser } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
 import type { InternshipStatus } from "@/types/database";
 import { internshipStatusSchema } from "@/types/schemas";
@@ -19,15 +19,11 @@ const updateInternshipStatusSchema = z.object({
 const deleteInternshipSchema = z.uuid("ID lowongan tidak valid.");
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof AuthGuardError) {
-    return error.status === 401
-      ? "Sesi berakhir. Silakan login kembali."
-      : "Akses ditolak oleh Single-User Gate.";
-  }
-  if (error instanceof z.ZodError) {
-    return error.issues[0]?.message ?? "Input lowongan tidak valid.";
-  }
-  return "Terjadi kesalahan saat memproses Target Internship.";
+  return formatActionError(
+    error,
+    "Input lowongan tidak valid.",
+    "Terjadi kesalahan saat memproses Target Internship.",
+  );
 }
 
 export async function updateInternshipStatusAction(

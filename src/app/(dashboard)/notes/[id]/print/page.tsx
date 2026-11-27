@@ -28,7 +28,7 @@ async function NotePrintLoader({
   const supabase = await createClient();
   const { data: note } = await supabase
     .from("notes")
-    .select("id, title, content_md, skill_id, updated_at")
+    .select("id, title, content_md, skill_id, updated_at, skills(name)")
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -37,18 +37,21 @@ async function NotePrintLoader({
     notFound();
   }
 
-  let skillName: string | null = null;
-  if (note.skill_id) {
-    const { data: skill } = await supabase
-      .from("skills")
-      .select("name")
-      .eq("id", note.skill_id)
-      .eq("user_id", user.id)
-      .maybeSingle();
-    skillName = skill?.name ?? null;
-  }
+  const skillName = Array.isArray(note.skills)
+    ? (note.skills[0]?.name ?? null)
+    : (note.skills?.name ?? null);
 
-  return <A4PrintView note={note} skillName={skillName} />;
+  return (
+    <A4PrintView
+      note={{
+        id: note.id,
+        title: note.title,
+        content_md: note.content_md,
+        updated_at: note.updated_at,
+      }}
+      skillName={skillName}
+    />
+  );
 }
 
 export default function NotePrintPage({

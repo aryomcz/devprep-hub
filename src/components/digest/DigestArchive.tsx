@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toSafeExternalHref } from "@/lib/safe-url";
 import type { DigestSource } from "@/types/database";
 
 export type DigestListItem = {
@@ -33,17 +34,6 @@ export type DigestListItem = {
   is_read: boolean;
   digest_date: string;
 };
-
-function toSafeExternalHref(rawUrl: string): string {
-  try {
-    const parsed = new URL(rawUrl);
-    return parsed.protocol === "http:" || parsed.protocol === "https:"
-      ? parsed.toString()
-      : "#";
-  } catch {
-    return "#";
-  }
-}
 
 export function DigestArchive({
   digests,
@@ -116,7 +106,7 @@ export function DigestArchive({
           value={skillFilter}
           onValueChange={(val) => setSkillFilter(val ?? "all")}
         >
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-48" aria-label="Filter skill digest">
             <SelectValue>
               {skillFilter === "all"
                 ? "Semua Skill"
@@ -141,7 +131,7 @@ export function DigestArchive({
             }
           }}
         >
-          <SelectTrigger className="w-44">
+          <SelectTrigger className="w-44" aria-label="Filter status baca digest">
             <SelectValue>
               {readFilter === "all"
                 ? "Semua Status"

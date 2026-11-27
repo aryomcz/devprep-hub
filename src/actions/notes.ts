@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
+import { formatActionError, requireAllowedUser } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
 
 export type NoteActionResult<T = undefined> =
@@ -31,15 +31,11 @@ const saveToNoteSchema = z.object({
 });
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof AuthGuardError) {
-    return error.status === 401
-      ? "Sesi berakhir. Silakan login kembali."
-      : "Akses ditolak oleh Single-User Gate.";
-  }
-  if (error instanceof z.ZodError) {
-    return error.issues[0]?.message ?? "Input catatan tidak valid.";
-  }
-  return "Terjadi kesalahan saat memproses catatan.";
+  return formatActionError(
+    error,
+    "Input catatan tidak valid.",
+    "Terjadi kesalahan saat memproses catatan.",
+  );
 }
 
 async function verifyOwnedSkillId(

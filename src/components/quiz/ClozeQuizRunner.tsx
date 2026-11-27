@@ -41,6 +41,10 @@ import {
   parseClozeMarkdown,
   type ClozeItem,
 } from "@/lib/cloze-parser";
+import {
+  splitInlineMarkdownTokens,
+  tokenizeMarkdownBlocks,
+} from "@/lib/markdown-blocks";
 import type { Note, QuizAttempt, Skill, SkillStatus } from "@/types/database";
 
 type QuizNoteItem = Pick<Note, "id" | "title" | "content_md" | "skill_id">;
@@ -82,8 +86,7 @@ function renderPromptInline(
   answers: Record<number, string>,
   keyPrefix: string,
 ): ReactNode[] {
-  const parts = text.split(/(___CLOZE_\d+___|``[^`]+``|`[^`]+`|\*\*[^*]+\*\*)/g);
-  return parts.filter(Boolean).map((part, idx) => {
+  return splitInlineMarkdownTokens(text).map((part, idx) => {
     const key = `${keyPrefix}-${idx}`;
     if (part.startsWith("___CLOZE_") && part.endsWith("___")) {
       const item = itemMap.get(part);
@@ -155,91 +158,90 @@ function renderPromptBlocks(
   grading: Map<number, boolean> | null,
   answers: Record<number, string>,
 ): ReactNode[] {
-  const lines = renderedPrompt.split("\n");
-  const blocks: ReactNode[] = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-    const trimmed = line.trim();
-
-    if (/^(```|~~~)/.test(trimmed)) {
-      const marker = trimmed.startsWith("```") ? "```" : "~~~";
-      const codeLines: string[] = [];
-      i++;
-      while (i < lines.length && !lines[i].trim().startsWith(marker)) {
-        codeLines.push(lines[i]);
-        i++;
-      }
-      i++;
-      blocks.push(
-        <pre
-          key={`code-${i}`}
-          className="overflow-x-auto rounded-lg border bg-muted/60 p-3 font-mono text-xs leading-relaxed"
-        >
-          <code>
+  return tokenizeMarkdownBlocks(renderedPrompt).map((block) => {
+    const i = block.lineIndex;
+    switch (block.type) {
+      case "code":
+        return (
+          <pre
+            key={`code-${i}`}
+            className="overflow-x-auto rounded-lg border bg-muted/60 p-3 font-mono text-xs leading-relaxed"
+          >
+            <code>
+              {renderPromptInline(
+                block.content,
+                itemMap,
+                grading,
+                answers,
+                `fence-${i}`,
+              )}
+            </code>
+          </pre>
+        );
+      case "hr":
+        return <hr key={`hr-${i}`} className="border-border" />;
+      case "heading": {
+        const cls =
+          block.level === 1
+            ? "pt-1 text-base font-bold"
+            : "pt-1.5 text-sm font-semibold";
+        return (
+          <p key={`h-${i}`} className={cls}>
             {renderPromptInline(
-              codeLines.join("\n"),
+              block.content,
               itemMap,
               grading,
               answers,
-              `fence-${i}`,
+              `h-${i}`,
             )}
-          </code>
-        </pre>,
-      );
-      continue;
+          </p>
+        );
+      }
+      case "blockquote":
+        return (
+          <blockquote
+            key={`q-${i}`}
+            className="border-l-2 border-primary/40 pl-3 text-xs text-muted-foreground italic"
+          >
+            {renderPromptInline(
+              block.content,
+              itemMap,
+              grading,
+              answers,
+              `q-${i}`,
+            )}
+          </blockquote>
+        );
+      case "list":
+        return (
+          <ul key={`list-${i}`} className="list-disc space-y-1 pl-5 text-sm">
+            {block.items.map((entry, idx) => (
+              <li key={`li-${i}-${idx}`}>
+                {renderPromptInline(
+                  entry,
+                  itemMap,
+                  grading,
+                  answers,
+                  `li-${i}-${idx}`,
+                )}
+              </li>
+            ))}
+          </ul>
+        );
+      case "paragraph":
+        return (
+          <p key={`p-${i}`} className="text-sm leading-relaxed">
+            {renderPromptInline(
+              block.content,
+              itemMap,
+              grading,
+              answers,
+              `p-${i}`,
+            )}
+          </p>
+        );
     }
-
-    if (!trimmed) {
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("#")) {
-      const level = trimmed.match(/^#+/)?.[0].length ?? 1;
-      const content = trimmed.slice(level).trim();
-      const cls =
-        level === 1
-          ? "pt-1 text-base font-bold"
-          : "pt-1.5 text-sm font-semibold";
-      blocks.push(
-        <p key={`h-${i}`} className={cls}>
-          {renderPromptInline(content, itemMap, grading, answers, `h-${i}`)}
-        </p>,
-      );
-      i++;
-      continue;
-    }
-
-    if (trimmed.startsWith("> ")) {
-      blocks.push(
-        <blockquote
-          key={`q-${i}`}
-          className="border-l-2 border-primary/40 pl-3 text-xs text-muted-foreground italic"
-        >
-          {renderPromptInline(
-            trimmed.slice(2),
-            itemMap,
-            grading,
-            answers,
-            `q-${i}`,
-          )}
-        </blockquote>,
-      );
-      i++;
-      continue;
-    }
-
-    blocks.push(
-      <p key={`p-${i}`} className="text-sm leading-relaxed">
-        {renderPromptInline(line, itemMap, grading, answers, `p-${i}`)}
-      </p>,
-    );
-    i++;
-  }
-
-  return blocks;
+  });
 }
 
 export function ClozeQuizRunner({
@@ -425,7 +427,7 @@ export function ClozeQuizRunner({
                 resetAttemptState();
               }}
             >
-              <SelectTrigger className="w-52">
+              <SelectTrigger className="w-52" aria-label="Filter skill kuis">
                 <SelectValue>
                   {skillFilter === "all"
                     ? "Semua Skill"
@@ -450,7 +452,7 @@ export function ClozeQuizRunner({
               onValueChange={handleSelectNote}
               disabled={filteredNotes.length === 0}
             >
-              <SelectTrigger className="w-72">
+              <SelectTrigger className="w-72" aria-label="Pilih catatan kuis">
                 <SelectValue>
                   {activeEntry
                     ? `${activeEntry.note.title} (${activeEntry.parsed.clozeCount} soal)`

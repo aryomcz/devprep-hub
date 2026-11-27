@@ -1,9 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
+import { cache } from "react";
 import type { Database } from "@/types/database";
 
+const withCache: <T extends (...args: never[]) => unknown>(fn: T) => T =
+  typeof cache === "function" ? cache : (fn) => fn;
+
 export async function createClient() {
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
@@ -27,6 +33,13 @@ export async function createClient() {
     },
   );
 }
+
+/** Request-memoized auth lookup to avoid duplicate getUser() calls across layout and pages. */
+export const getAuthenticatedUser = withCache(async () => {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  return data.user;
+});
 
 /** Server-only admin client for /api/cron/* using SUPABASE_SECRET_KEY. */
 export function createAdminClient() {

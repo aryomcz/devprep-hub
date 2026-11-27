@@ -86,7 +86,7 @@ function highlightSegment(text: string, keyPrefix: string): ReactNode {
           return (
             <span
               key={key}
-              className="font-semibold text-blue-600 dark:text-sky-300"
+              className="font-semibold text-[var(--syntax-keyword)]"
             >
               {part}
             </span>

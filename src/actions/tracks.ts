@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
+import { formatActionError, requireAllowedUser } from "@/lib/auth-guard";
 import { createClient } from "@/lib/supabase/server";
 import type { TrackStatus } from "@/types/database";
 import { trackStatusSchema } from "@/types/schemas";
@@ -20,18 +20,6 @@ const unlockNextModuleSchema = z.object({
   trackId: z.uuid("ID track tidak valid."),
   moduleId: z.uuid("ID modul tidak valid."),
 });
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof AuthGuardError) {
-    return error.status === 401
-      ? "Sesi berakhir. Silakan login kembali."
-      : "Akses ditolak oleh Single-User Gate.";
-  }
-  if (error instanceof z.ZodError) {
-    return error.issues[0]?.message ?? "Input Learning Track tidak valid.";
-  }
-  return "Terjadi kesalahan saat memproses Learning Track.";
-}
 
 export async function updateTrackStatusAction(
   input: z.input<typeof updateTrackStatusSchema>,
@@ -59,7 +47,14 @@ export async function updateTrackStatusAction(
       data: { trackId: parsed.trackId, status: parsed.status },
     };
   } catch (error) {
-    return { ok: false, error: getErrorMessage(error) };
+    return {
+      ok: false,
+      error: formatActionError(
+        error,
+        "Input Learning Track tidak valid.",
+        "Terjadi kesalahan saat memproses Learning Track.",
+      ),
+    };
   }
 }
 
@@ -72,87 +67,26 @@ export async function unlockNextModuleAction(
   }>
 > {
   try {
-    const user = await requireAllowedUser();
+    await requireAllowedUser();
     const parsed = unlockNextModuleSchema.parse(input);
     const supabase = await createClient();
 
-    const { data: track, error: trackError } = await supabase
-      .from("learning_tracks")
-      .select("id")
-      .eq("id", parsed.trackId)
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (trackError) {
-      return { ok: false, error: trackError.message };
-    }
-    if (!track) {
-      return { ok: false, error: "Learning Track tidak ditemukan." };
-    }
-
-    const { data: modules, error: modulesError } = await supabase
-      .from("track_modules")
-      .select("id, order_index, status")
-      .eq("track_id", parsed.trackId)
-      .order("order_index", { ascending: true });
-
-    if (modulesError) {
-      return { ok: false, error: modulesError.message };
-    }
-
-    const list = modules ?? [];
-    const currentIndex = list.findIndex((m) => m.id === parsed.moduleId);
-    if (currentIndex === -1) {
-      return { ok: false, error: "Modul tidak ditemukan pada track ini." };
-    }
-    if (list[currentIndex]?.status === "locked") {
-      return {
-        ok: false,
-        error: "Modul terkunci tidak dapat diselesaikan secara langsung.",
-      };
-    }
-
-    const { error: completeError } = await supabase
-      .from("track_modules")
-      .update({ status: "completed" })
-      .eq("id", parsed.moduleId)
-      .eq("track_id", parsed.trackId);
-
-    if (completeError) {
-      return { ok: false, error: completeError.message };
-    }
-
-    const nextLocked = list.find(
-      (mod, idx) => idx > currentIndex && mod.status === "locked",
+    const { data, error } = await supabase.rpc(
+      "complete_and_unlock_next_module",
+      {
+        p_track_id: parsed.trackId,
+        p_module_id: parsed.moduleId,
+      },
     );
 
-    if (nextLocked) {
-      const { error: unlockError } = await supabase
-        .from("track_modules")
-        .update({ status: "in_progress" })
-        .eq("id", nextLocked.id)
-        .eq("track_id", parsed.trackId);
-
-      if (unlockError) {
-        return { ok: false, error: unlockError.message };
-      }
+    if (error) {
+      return { ok: false, error: error.message };
     }
 
-    const allCompleted = list.every(
-      (mod) => mod.id === parsed.moduleId || mod.status === "completed",
-    );
-
-    if (allCompleted) {
-      const { error: trackCompleteError } = await supabase
-        .from("learning_tracks")
-        .update({ status: "completed" })
-        .eq("id", parsed.trackId)
-        .eq("user_id", user.id);
-
-      if (trackCompleteError) {
-        return { ok: false, error: trackCompleteError.message };
-      }
-    }
+    const result = (data ?? {}) as {
+      unlockedModuleId?: string | null;
+      trackCompleted?: boolean;
+    };
 
     revalidatePath("/tracks");
     revalidatePath(`/tracks/${parsed.trackId}`);
@@ -161,11 +95,18 @@ export async function unlockNextModuleAction(
     return {
       ok: true,
       data: {
-        unlockedModuleId: nextLocked?.id ?? null,
-        trackCompleted: allCompleted,
+        unlockedModuleId: result.unlockedModuleId ?? null,
+        trackCompleted: Boolean(result.trackCompleted),
       },
     };
   } catch (error) {
-    return { ok: false, error: getErrorMessage(error) };
+    return {
+      ok: false,
+      error: formatActionError(
+        error,
+        "Input Learning Track tidak valid.",
+        "Terjadi kesalahan saat memproses Learning Track.",
+      ),
+    };
   }
 }

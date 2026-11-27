@@ -114,11 +114,11 @@ export function MergeSkillDialog({ skills }: { skills: MergeableSkill[] }) {
           ) : null}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium">
+            <label htmlFor="merge-source-skill" className="text-xs font-medium">
               Skill Sumber (akan dihapus)
             </label>
             <Select value={sourceId} onValueChange={handleSourceChange}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="merge-source-skill" className="w-full">
                 <SelectValue>
                   {sourceSkill
                     ? `${sourceSkill.name} (${sourceSkill.mastery_score}%)`
@@ -136,7 +136,7 @@ export function MergeSkillDialog({ skills }: { skills: MergeableSkill[] }) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium">
+            <label htmlFor="merge-target-skill" className="text-xs font-medium">
               Skill Target (dipertahankan)
             </label>
             <Select
@@ -146,7 +146,7 @@ export function MergeSkillDialog({ skills }: { skills: MergeableSkill[] }) {
                 setError(null);
               }}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="merge-target-skill" className="w-full">
                 <SelectValue>
                   {targetSkill
                     ? `${targetSkill.name} (${targetSkill.mastery_score}%)`

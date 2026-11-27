@@ -3,7 +3,6 @@ import { Suspense, type ReactNode } from "react";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { AuthGuardError, requireAllowedUser } from "@/lib/auth-guard";
-import { createClient } from "@/lib/supabase/server";
 
 async function AuthenticatedShell({ children }: { children: ReactNode }) {
   let user: { id: string; email: string };
@@ -17,18 +16,22 @@ async function AuthenticatedShell({ children }: { children: ReactNode }) {
     redirect("/login");
   }
 
-  // Ensure pre-existing auth.users rows created prior to trigger migration have a profiles row.
-  const supabase = await createClient();
-  await supabase
-    .from("profiles")
-    .upsert({ id: user.id }, { onConflict: "id", ignoreDuplicates: true });
-
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:border focus:border-ring focus:bg-background focus:px-3 focus:py-2 focus:text-xs focus:font-medium focus:text-foreground focus:shadow-md"
+      >
+        Lewati ke konten utama
+      </a>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <MobileNav userEmail={user.email} />
-        <main className="flex-1 px-4 py-5 md:px-7 md:py-7 lg:px-9 lg:py-8">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 px-4 py-5 outline-none md:px-7 md:py-7 lg:px-9 lg:py-8"
+        >
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
       </div>

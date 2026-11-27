@@ -161,123 +161,6 @@ export async function POST(request: NextRequest) {
       skippedFiles: sanitized.skippedFiles,
     });
 
-    const { data: submission, error: subError } = await supabase
-      .from("lab_submissions")
-      .insert({
-        module_id: moduleId,
-        user_id: user.id,
-        code_snippet: repoCommitUrl ? "" : sanitized.sanitizedText,
-        repo_commit_url: repoCommitUrl,
-        ai_review_feedback: review.feedback,
-        generated_interview_qs: review.interview_questions,
-        passed: review.passed,
-      })
-      .select("id, submitted_at")
-      .single();
-
-    if (subError || !submission) {
-      return NextResponse.json(
-        { error: subError?.message ?? "Gagal menyimpan Lab Submission." },
-        { status: 500 },
-      );
-    }
-
-    const nowIso = new Date().toISOString();
-    const interviewCardRows = review.interview_questions.map((question) => ({
-      user_id: user.id,
-      skill_id: skill.id,
-      lab_submission_id: submission.id,
-      question_prompt: question,
-      source: "lab_review" as const,
-      next_review_at: nowIso,
-    }));
-
-    const { error: cardError } = await supabase
-      .from("interview_cards")
-      .insert(interviewCardRows);
-
-    if (cardError) {
-      await supabase
-        .from("lab_submissions")
-        .delete()
-        .eq("id", submission.id)
-        .eq("user_id", user.id);
-
-      return NextResponse.json(
-        { error: "Gagal membuat Interview Card dari hasil review." },
-        { status: 500 },
-      );
-    }
-
-    let unlockedModuleId: string | null = null;
-    if (review.passed) {
-      const { error: completeError } = await supabase
-        .from("track_modules")
-        .update({ status: "completed" })
-        .eq("id", moduleId)
-        .eq("track_id", trackId);
-
-      if (completeError) {
-        return NextResponse.json(
-          { error: "Gagal memperbarui status kelulusan modul." },
-          { status: 500 },
-        );
-      }
-
-      const { data: trackModules, error: trackModulesError } = await supabase
-        .from("track_modules")
-        .select("id, order_index, status")
-        .eq("track_id", trackId)
-        .order("order_index", { ascending: true });
-
-      if (trackModulesError) {
-        return NextResponse.json(
-          { error: "Gagal membaca urutan modul track." },
-          { status: 500 },
-        );
-      }
-
-      const list = trackModules ?? [];
-      const currentIdx = list.findIndex((item) => item.id === moduleId);
-      const nextLocked = list.find(
-        (item, idx) => idx > currentIdx && item.status === "locked",
-      );
-
-      if (nextLocked) {
-        const { error: unlockError } = await supabase
-          .from("track_modules")
-          .update({ status: "in_progress" })
-          .eq("id", nextLocked.id)
-          .eq("track_id", trackId);
-
-        if (unlockError) {
-          return NextResponse.json(
-            { error: "Gagal membuka modul berikutnya." },
-            { status: 500 },
-          );
-        }
-        unlockedModuleId = nextLocked.id;
-      }
-
-      const allCompleted = list.every(
-        (item) => item.id === moduleId || item.status === "completed",
-      );
-      if (allCompleted) {
-        const { error: trackDoneError } = await supabase
-          .from("learning_tracks")
-          .update({ status: "completed" })
-          .eq("id", trackId)
-          .eq("user_id", user.id);
-
-        if (trackDoneError) {
-          return NextResponse.json(
-            { error: "Gagal memperbarui status penyelesaian track." },
-            { status: 500 },
-          );
-        }
-      }
-    }
-
     const [quizzesRes, labsRes, interviewsRes] = await Promise.all([
       supabase
         .from("quiz_attempts")
@@ -314,27 +197,39 @@ export async function POST(request: NextRequest) {
     const breakdown = calculateMasteryBreakdown({
       source: skill.source,
       quizScores,
-      labPassed: labRows.some((row) => row.passed),
-      labSubmitted: labRows.length > 0,
+      labPassed: review.passed || labRows.some((row) => row.passed),
+      labSubmitted: true,
       latestConfidence: interviewsRes.data?.[0]?.confidence_level ?? null,
     });
 
-    const { error: skillUpdateError } = await supabase
-      .from("skills")
-      .update({
-        mastery_score: breakdown.masteryScore,
-        status: breakdown.status,
-        updated_at: nowIso,
-      })
-      .eq("id", skill.id)
-      .eq("user_id", user.id);
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      "submit_lab_review",
+      {
+        p_track_id: trackId,
+        p_module_id: moduleId,
+        p_skill_id: skill.id,
+        p_code_snippet: repoCommitUrl ? "" : sanitized.sanitizedText,
+        p_repo_commit_url: repoCommitUrl,
+        p_ai_review_feedback: review.feedback,
+        p_interview_questions: review.interview_questions,
+        p_passed: review.passed,
+        p_mastery_score: breakdown.masteryScore,
+        p_skill_status: breakdown.status,
+      },
+    );
 
-    if (skillUpdateError) {
+    if (rpcError) {
       return NextResponse.json(
-        { error: "Gagal menyimpan pembaruan Mastery Score skill." },
+        { error: rpcError.message ?? "Gagal menyimpan hasil Lab Submission." },
         { status: 500 },
       );
     }
+
+    const rpcResult = (rpcData ?? {}) as {
+      submissionId?: string;
+      submittedAt?: string;
+      unlockedModuleId?: string | null;
+    };
 
     revalidatePath("/tracks");
     revalidatePath(`/tracks/${trackId}`);
@@ -347,12 +242,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ok: true,
-        submissionId: submission.id,
-        submittedAt: submission.submitted_at,
+        submissionId: rpcResult.submissionId ?? "",
+        submittedAt: rpcResult.submittedAt ?? new Date().toISOString(),
         passed: review.passed,
         feedback: review.feedback,
         interviewQuestions: review.interview_questions,
-        unlockedModuleId,
+        unlockedModuleId: rpcResult.unlockedModuleId ?? null,
         masteryScore: breakdown.masteryScore,
         skillStatus: breakdown.status,
         capped: breakdown.capped,

@@ -8,6 +8,8 @@ import {
   GithubSyncError,
 } from "@/services/external/github";
 
+export const maxDuration = 30;
+
 const syncBodySchema = z.object({
   githubUsername: z.string().trim().max(100).optional(),
 });

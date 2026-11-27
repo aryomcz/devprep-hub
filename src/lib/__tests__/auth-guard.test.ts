@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AuthGuardError,
+  formatActionError,
   isAllowedEmail,
   requireAllowedUser,
   verifyCronSecret,
@@ -58,5 +59,41 @@ describe("requireAllowedUser", () => {
         "dev@example.com",
       ),
     ).rejects.toMatchObject({ status: 403 });
+  });
+});
+
+describe("formatActionError", () => {
+  it("formats 401/403 AuthGuardError, validation issues, and generic errors", () => {
+    expect(
+      formatActionError(
+        new AuthGuardError("Unauthorized", 401),
+        "Invalid",
+        "Generic",
+      ),
+    ).toBe("Sesi berakhir. Silakan login kembali.");
+
+    expect(
+      formatActionError(
+        new AuthGuardError("Forbidden", 403),
+        "Invalid",
+        "Generic",
+      ),
+    ).toBe("Akses ditolak oleh Single-User Gate.");
+
+    expect(
+      formatActionError(
+        { issues: [{ message: "Field wajib diisi." }] },
+        "Invalid",
+        "Generic",
+      ),
+    ).toBe("Field wajib diisi.");
+
+    expect(
+      formatActionError({ issues: [{}] }, "Invalid fallback", "Generic"),
+    ).toBe("Invalid fallback");
+
+    expect(
+      formatActionError(new Error("boom"), "Invalid", "Generic fallback"),
+    ).toBe("Generic fallback");
   });
 });

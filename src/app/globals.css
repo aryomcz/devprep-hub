@@ -74,6 +74,7 @@
   --status-gap: #dc2626;
   --status-learning: #b45309;
   --status-mastered: #047857;
+  --syntax-keyword: #2563eb;
   --chart-1: #2563eb;
   --chart-2: #047857;
   --chart-3: #b45309;
@@ -114,6 +115,7 @@
   --status-gap: #f87171;
   --status-learning: #fbbf24;
   --status-mastered: #34d399;
+  --syntax-keyword: #7dd3fc;
   --chart-1: #60a5fa;
   --chart-2: #34d399;
   --chart-3: #fbbf24;

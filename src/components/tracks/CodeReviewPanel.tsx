@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { toSafeExternalHref } from "@/lib/safe-url";
 import type { SkillStatus } from "@/types/database";
 import type { AiReviewFeedback } from "@/types/schemas";
 
@@ -391,7 +392,7 @@ export function CodeReviewPanel({
                       </Badge>
                       {sub.repo_commit_url ? (
                         <a
-                          href={sub.repo_commit_url}
+                          href={toSafeExternalHref(sub.repo_commit_url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="font-mono text-foreground underline-offset-4 hover:underline"

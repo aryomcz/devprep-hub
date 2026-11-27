@@ -236,7 +236,9 @@ export function TrackGeneratorDialog({
             </TabsList>
 
             <TabsContent value="internship" className="mt-3 space-y-2">
-              <label className="text-xs font-medium">Target Magang</label>
+              <label htmlFor="track-internship" className="text-xs font-medium">
+                Target Magang
+              </label>
               {internships.length === 0 ? (
                 <p className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
                   Belum ada Target Magang. Gunakan tab Pilih Skill Manual
@@ -247,7 +249,7 @@ export function TrackGeneratorDialog({
                   value={selectedInternshipId}
                   onValueChange={(val) => setSelectedInternshipId(val ?? "")}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="track-internship" className="w-full">
                     <SelectValue>
                       {internshipMap.get(selectedInternshipId)
                         ? `${internshipMap.get(selectedInternshipId)?.title} (${internshipMap.get(selectedInternshipId)?.company_name || "Umum"})`
@@ -307,7 +309,7 @@ export function TrackGeneratorDialog({
           </Tabs>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium">
+            <label htmlFor="track-language-mode" className="text-xs font-medium">
               Mode untuk Bahasa Pemrograman Baru (di luar primary stack)
             </label>
             <Select
@@ -318,7 +320,7 @@ export function TrackGeneratorDialog({
                 }
               }}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="track-language-mode" className="w-full">
                 <SelectValue>
                   {languageMode === "microservice"
                     ? "Microservice (terhubung ke One-App Capstone)"
@@ -394,7 +396,10 @@ export function TrackStatusBar({
         onValueChange={handleStatusChange}
         disabled={isPending}
       >
-        <SelectTrigger className="h-8 w-36 text-xs">
+        <SelectTrigger
+          className="h-8 w-36 text-xs"
+          aria-label="Status Learning Track"
+        >
           <SelectValue>{TRACK_STATUS_LABELS[currentStatus]}</SelectValue>
         </SelectTrigger>
         <SelectContent>

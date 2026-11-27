@@ -20,6 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { toSafeExternalHref } from "@/lib/safe-url";
 import type { ResourceSource } from "@/types/database";
 
 type LookupResultItem = {
@@ -37,17 +38,6 @@ const SOURCE_LABELS: Record<ResourceSource, string> = {
   youtube: "YouTube",
   github: "GitHub",
 };
-
-function toSafeExternalUrl(rawUrl: string): string {
-  try {
-    const parsed = new URL(rawUrl);
-    return parsed.protocol === "http:" || parsed.protocol === "https:"
-      ? parsed.toString()
-      : "#";
-  } catch {
-    return "#";
-  }
-}
 
 export function QuickLookupDrawer({
   onInsertSnippet,
@@ -95,7 +85,7 @@ export function QuickLookupDrawer({
   }
 
   function handleInsert(item: LookupResultItem) {
-    const safeUrl = toSafeExternalUrl(item.url);
+    const safeUrl = toSafeExternalHref(item.url);
     const snippet = [
       `### {{${item.title}}}`,
       "",
@@ -174,7 +164,7 @@ export function QuickLookupDrawer({
                       {SOURCE_LABELS[item.source]}
                     </Badge>
                     <a
-                      href={toSafeExternalUrl(item.url)}
+                      href={toSafeExternalHref(item.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"

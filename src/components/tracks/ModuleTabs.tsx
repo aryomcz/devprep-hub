@@ -30,6 +30,7 @@ import {
 import { InlineBlankDrillRunner } from "@/components/tracks/InlineBlankDrillRunner";
 import { ProgressiveHints } from "@/components/tracks/ProgressiveHints";
 import { Badge } from "@/components/ui/badge";
+import { toSafeExternalHref } from "@/lib/safe-url";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -360,7 +361,7 @@ export function ModuleTabs({
                           {res.source}
                         </Badge>
                         <a
-                          href={res.url}
+                          href={toSafeExternalHref(res.url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-sm font-medium text-foreground underline-offset-4 hover:underline"

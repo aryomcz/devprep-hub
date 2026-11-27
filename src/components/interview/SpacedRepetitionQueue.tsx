@@ -152,7 +152,7 @@ export function SpacedRepetitionQueue({
             value={skillFilter}
             onValueChange={(value) => setSkillFilter(value ?? "all")}
           >
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48" aria-label="Filter skill interview">
               <SelectValue>
                 {skillFilter === "all"
                   ? "Semua Skill"
@@ -182,7 +182,7 @@ export function SpacedRepetitionQueue({
               }
             }}
           >
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48" aria-label="Filter sumber kartu">
               <SelectValue>{SOURCE_FILTER_LABELS[sourceFilter]}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -225,12 +225,14 @@ export function SpacedRepetitionQueue({
               ) : null}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium">Skill Terkait</label>
+                <label htmlFor="card-skill" className="text-xs font-medium">
+                  Skill Terkait
+                </label>
                 <Select
                   value={newSkillId}
                   onValueChange={(val) => setNewSkillId(val ?? "")}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="card-skill" className="w-full">
                     <SelectValue>
                       {skillMap.get(newSkillId)?.name ?? "Pilih Skill"}
                     </SelectValue>
@@ -246,7 +248,9 @@ export function SpacedRepetitionQueue({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium">Sumber Kartu</label>
+                <label htmlFor="card-source" className="text-xs font-medium">
+                  Sumber Kartu
+                </label>
                 <Select
                   value={newSource}
                   onValueChange={(val) => {
@@ -262,7 +266,7 @@ export function SpacedRepetitionQueue({
                     }
                   }}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="card-source" className="w-full">
                     <SelectValue>
                       {newSource === "manual" ? "Manual" : "Seed Skill Gap"}
                     </SelectValue>
