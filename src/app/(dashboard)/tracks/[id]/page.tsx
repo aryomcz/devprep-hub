@@ -113,28 +113,33 @@ async function TrackDetailLoader({
                 {track.capstone_description}
               </CardDescription>
             </div>
-            <Badge variant="secondary">{track.primary_stack}</Badge>
+            <Badge variant="mono" className="shrink-0">
+              {track.primary_stack}
+            </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-2 border-t pt-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <CardContent className="space-y-2 border-t border-border/80 pt-4">
+          <div className="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Arsitektur One-App Capstone
           </div>
-          <p className="whitespace-pre-line text-sm leading-relaxed">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
             {track.architecture_overview}
           </p>
         </CardContent>
       </Card>
 
       <div className="space-y-3">
-        <h2 className="flex items-center gap-2 text-base font-semibold">
-          <Layers className="size-4" />
-          <span>Peta Urutan Modul ({modules.length})</span>
+        <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight">
+          <Layers className="size-4 text-muted-foreground" />
+          <span>Peta Urutan Modul</span>
+          <Badge variant="mono" className="tabular-nums">
+            {modules.length}
+          </Badge>
         </h2>
 
         {modules.length === 0 ? (
-          <Card>
-            <CardContent className="py-6 text-sm text-muted-foreground">
+          <Card className="border-dashed bg-card/60">
+            <CardContent className="py-6 text-center text-sm text-muted-foreground">
               Belum ada modul pada track ini.
             </CardContent>
           </Card>
@@ -145,34 +150,48 @@ async function TrackDetailLoader({
               const isLocked = mod.status === "locked";
 
               return (
-                <Card key={mod.id} className={isLocked ? "opacity-75" : ""}>
+                <Card
+                  key={mod.id}
+                  className={
+                    isLocked ? "opacity-70" : "hover:border-foreground/20"
+                  }
+                >
                   <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0 space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-primary">
+                        <Badge variant="mono" className="tabular-nums">
                           Modul #{mod.order_index}
-                        </span>
-                        <span className="font-semibold text-sm">
+                        </Badge>
+                        <span className="text-sm font-semibold text-foreground">
                           {skill?.name ?? "Skill"}
                         </span>
-                        <Badge variant="outline" className="text-[11px]">
+                        <Badge variant="mono" className="text-[10px]">
                           {MODULE_TYPE_LABELS[mod.module_type]}
                         </Badge>
-                        <Badge variant="outline" className="text-[11px]">
+                        <Badge variant="mono" className="text-[10px]">
                           {mod.target_language}
                         </Badge>
                         <Badge
                           variant={
                             mod.status === "completed"
-                              ? "default"
+                              ? "mastered"
                               : mod.status === "in_progress"
-                                ? "secondary"
+                                ? "learning"
                                 : "outline"
                           }
                         >
                           {MODULE_STATUS_LABELS[mod.status]}
                         </Badge>
-                        <Badge variant="outline" className="text-[11px]">
+                        <Badge
+                          variant={
+                            mod.content_status === "ready"
+                              ? "mastered"
+                              : mod.content_status === "failed"
+                                ? "gap"
+                                : "outline"
+                          }
+                          className="text-[10px]"
+                        >
                           {CONTENT_STATUS_LABELS[mod.content_status]}
                         </Badge>
                       </div>
@@ -201,10 +220,13 @@ async function TrackDetailLoader({
                           <span>Terkunci</span>
                         </Button>
                       ) : (
-                        <Link href={`/tracks/${track.id}/modules/${mod.id}`}>
+                        <Link
+                          href={`/tracks/${track.id}/modules/${mod.id}`}
+                          className="group/mod"
+                        >
                           <Button size="xs" className="gap-1">
                             <span>Buka Modul</span>
-                            <ArrowRight className="size-3.5" />
+                            <ArrowRight className="size-3.5 transition-transform duration-150 group-hover/mod:translate-x-0.5" />
                           </Button>
                         </Link>
                       )}

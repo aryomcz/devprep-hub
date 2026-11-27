@@ -92,17 +92,19 @@ function renderPromptInline(
         const typed = answers[item.index]?.trim();
         const badgeStyle =
           isCorrect === true
-            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+            ? "border-[color-mix(in_oklab,var(--status-mastered)_42%,transparent)] bg-[color-mix(in_oklab,var(--status-mastered)_12%,transparent)] text-[var(--status-mastered)]"
             : isCorrect === false
               ? "border-destructive/40 bg-destructive/10 text-destructive"
-              : "border-primary/40 bg-primary/10 text-primary";
+              : "border-[color-mix(in_oklab,var(--ring)_42%,transparent)] bg-[color-mix(in_oklab,var(--ring)_13%,transparent)] text-foreground";
 
         return (
           <span
             key={key}
-            className={`mx-0.5 inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-xs font-medium ${badgeStyle}`}
+            className={`mx-0.5 inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-xs font-medium tabular-nums ${badgeStyle}`}
           >
-            <span>#{item.index}</span>
+            <span className={grading ? undefined : "text-[var(--ring)]"}>
+              #{item.index}
+            </span>
             {grading ? (
               <span>: {item.answer}</span>
             ) : typed ? (
@@ -529,14 +531,17 @@ export function ClozeQuizRunner({
                     ) : null}
 
                     {result ? (
-                      <div className="space-y-1.5 rounded-lg border bg-muted/40 p-3 text-xs">
+                      <div className="space-y-1.5 rounded-lg border border-border bg-muted/40 p-3 text-xs">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-sm font-semibold">
+                          <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
                             Skor Kuis: {result.score}% ({result.correctCount}/
                             {result.totalCount} benar)
                           </span>
                           {result.savedToSkill && result.masteryScore !== null ? (
-                            <Badge variant="default">
+                            <Badge
+                              variant={result.status ?? "default"}
+                              className="font-mono tabular-nums"
+                            >
                               Mastery: {result.masteryScore}% (
                               {result.status ? STATUS_LABELS[result.status] : ""})
                             </Badge>
@@ -631,8 +636,8 @@ export function ClozeQuizRunner({
                               <div className="flex items-center gap-1.5 text-xs">
                                 {isCorrect ? (
                                   <>
-                                    <CheckCircle2 className="size-3.5 text-emerald-600" />
-                                    <span className="font-medium text-emerald-700 dark:text-emerald-300">
+                                    <CheckCircle2 className="size-3.5 text-[var(--status-mastered)]" />
+                                    <span className="font-medium text-[var(--status-mastered)]">
                                       Benar ({item.answer})
                                     </span>
                                   </>
@@ -695,39 +700,40 @@ export function ClozeQuizRunner({
         </CardHeader>
         <CardContent>
           {recentAttempts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
               Belum ada riwayat kuis yang tercatat.
-            </p>
+            </div>
           ) : (
-            <div className="divide-y rounded-lg border">
+            <div className="divide-y divide-border rounded-lg border border-border">
               {recentAttempts.map((attempt) => {
                 const skill = skillMap.get(attempt.skill_id);
                 return (
                   <div
                     key={attempt.id}
-                    className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-muted/25"
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium">
+                      <span className="font-medium text-foreground">
                         {skill?.name ?? "Skill"}
                       </span>
-                      <Badge variant="outline" className="text-[11px]">
+                      <Badge variant="mono" className="text-[11px]">
                         {attempt.source_type === "note_cloze"
                           ? "Note Cloze"
                           : "Module Drill"}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="font-mono text-xs tabular-nums text-muted-foreground">
                         {attempt.correct_answers}/{attempt.total_questions} benar
                       </span>
                     </div>
 
                     <div className="flex items-center gap-3 text-xs">
                       <Badge
-                        variant={attempt.score >= 70 ? "default" : "secondary"}
+                        variant={attempt.score >= 70 ? "mastered" : "learning"}
+                        className="font-mono tabular-nums"
                       >
                         {attempt.score}%
                       </Badge>
-                      <span className="text-muted-foreground">
+                      <span className="font-mono tabular-nums text-muted-foreground">
                         {new Date(attempt.attempted_at).toLocaleDateString(
                           "id-ID",
                           {

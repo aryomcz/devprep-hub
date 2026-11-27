@@ -125,9 +125,11 @@ async function ModuleWorkspaceLoader({
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">Modul #{mod.order_index}</Badge>
+          <Badge variant="mono" className="tabular-nums">
+            Modul #{mod.order_index}
+          </Badge>
           <Badge variant="secondary">{skill.name}</Badge>
-          <Badge variant="outline">{mod.target_language}</Badge>
+          <Badge variant="mono">{mod.target_language}</Badge>
         </div>
       </div>
 

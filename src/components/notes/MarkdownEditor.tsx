@@ -88,9 +88,9 @@ function renderInlineWithCloze(
         return (
           <span
             key={key}
-            className="mx-0.5 inline-flex items-center gap-1 rounded border border-primary/30 bg-primary/10 px-1.5 py-0.5 font-mono text-xs font-medium text-primary"
+            className="mx-0.5 inline-flex items-center gap-1 rounded border border-[color-mix(in_oklab,var(--ring)_38%,transparent)] bg-[color-mix(in_oklab,var(--ring)_13%,transparent)] px-1.5 py-0.5 font-mono text-xs font-medium tabular-nums text-foreground"
           >
-            <span>#{item.index}:</span>
+            <span className="text-[var(--ring)]">#{item.index}:</span>
             <span>{item.answer}</span>
             {item.hint ? (
               <span className="text-[11px] text-muted-foreground">
@@ -454,7 +454,7 @@ export function NotesDirectory({
       </div>
 
       {groupedNotes.length === 0 ? (
-        <Card>
+        <Card className="border-dashed bg-card/60">
           <CardContent className="flex flex-col items-center gap-2 py-10 text-center">
             <BookOpen className="size-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
@@ -470,22 +470,27 @@ export function NotesDirectory({
             <section key={groupKey} className="space-y-3">
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold">{group.label}</h2>
-                <Badge variant="outline">{group.items.length}</Badge>
+                <Badge variant="mono" className="tabular-nums">
+                  {group.items.length}
+                </Badge>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {group.items.map((note) => (
-                  <Card key={note.id} className="flex flex-col justify-between">
+                  <Card
+                    key={note.id}
+                    className="flex flex-col justify-between hover:border-foreground/20"
+                  >
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">
                         <CardTitle className="line-clamp-2 text-base">
                           {note.title}
                         </CardTitle>
-                        <Badge variant="secondary" className="shrink-0">
+                        <Badge variant="mono" className="shrink-0 tabular-nums">
                           {note.clozeCount} Cloze
                         </Badge>
                       </div>
-                      <CardDescription>
+                      <CardDescription className="font-mono text-xs tabular-nums">
                         Diperbarui {note.updated_at.slice(0, 10)}
                       </CardDescription>
                     </CardHeader>
@@ -646,7 +651,9 @@ export function MarkdownEditor({
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">{parsedCloze.clozeCount} Soal Cloze</Badge>
+          <Badge variant="mono" className="tabular-nums">
+            {parsedCloze.clozeCount} Soal Cloze
+          </Badge>
 
           <QuickLookupDrawer onInsertSnippet={handleInsertLookupSnippet} />
 
@@ -817,7 +824,7 @@ export function MarkdownEditor({
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">Live Preview</CardTitle>
-              <span className="text-xs text-muted-foreground">
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">
                 {parsedCloze.clozeCount} cloze terdeteksi
               </span>
             </div>

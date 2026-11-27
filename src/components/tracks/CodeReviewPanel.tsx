@@ -198,7 +198,7 @@ export function CodeReviewPanel({
                   <label htmlFor="lab-code-snippet" className="font-medium">
                     Tempel Kode Implementasi ({skillName})
                   </label>
-                  <span className="text-muted-foreground">
+                  <span className="font-mono text-xs tabular-nums text-muted-foreground">
                     {codeSnippet.length.toLocaleString("id-ID")} karakter
                   </span>
                 </div>
@@ -250,8 +250,8 @@ export function CodeReviewPanel({
         <Card
           className={
             latestResult.passed
-              ? "border-emerald-500/40"
-              : "border-amber-500/40"
+              ? "border-[color-mix(in_oklab,var(--status-mastered)_45%,transparent)]"
+              : "border-[color-mix(in_oklab,var(--status-learning)_45%,transparent)]"
           }
         >
           <CardHeader className="pb-3">
@@ -259,18 +259,21 @@ export function CodeReviewPanel({
               <CardTitle className="flex items-center gap-2 text-base">
                 {latestResult.passed ? (
                   <>
-                    <CheckCircle2 className="size-4 text-emerald-600" />
+                    <CheckCircle2 className="size-4 text-[var(--status-mastered)]" />
                     <span>Lulus Acceptance Criteria</span>
                   </>
                 ) : (
                   <>
-                    <XCircle className="size-4 text-amber-600" />
+                    <XCircle className="size-4 text-[var(--status-learning)]" />
                     <span>Perlu Revisi Sebelum Lulus</span>
                   </>
                 )}
               </CardTitle>
 
-              <Badge variant="default">
+              <Badge
+                variant={latestResult.skillStatus}
+                className="font-mono tabular-nums"
+              >
                 Mastery {skillName}: {latestResult.masteryScore}% (
                 {SKILL_STATUS_LABELS[latestResult.skillStatus]})
               </Badge>
@@ -280,7 +283,7 @@ export function CodeReviewPanel({
 
           <CardContent className="space-y-4 text-xs">
             {latestResult.truncated || latestResult.skippedFiles.length > 0 ? (
-              <div className="rounded-lg border bg-muted/40 px-3 py-2 text-muted-foreground">
+              <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-muted-foreground">
                 {latestResult.skippedFiles.length > 0 ? (
                   <span>
                     File dilewati:{" "}
@@ -297,8 +300,8 @@ export function CodeReviewPanel({
             ) : null}
 
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-1.5 rounded-lg border p-3">
-                <div className="font-semibold text-emerald-700 dark:text-emerald-300">
+              <div className="space-y-1.5 rounded-lg border border-border bg-muted/20 p-3">
+                <div className="font-semibold text-[var(--status-mastered)]">
                   Kriteria Terpenuhi
                 </div>
                 <ul className="list-disc space-y-1 pl-4">
@@ -312,8 +315,8 @@ export function CodeReviewPanel({
                 </ul>
               </div>
 
-              <div className="space-y-1.5 rounded-lg border p-3">
-                <div className="font-semibold text-amber-700 dark:text-amber-300">
+              <div className="space-y-1.5 rounded-lg border border-border bg-muted/20 p-3">
+                <div className="font-semibold text-[var(--status-learning)]">
                   Saran Perbaikan
                 </div>
                 <ul className="list-disc space-y-1 pl-4">
@@ -362,24 +365,28 @@ export function CodeReviewPanel({
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">
-            Riwayat Lab Submission ({initialSubmissions.length})
+          <CardTitle className="flex items-center justify-between gap-2 text-base">
+            <span>Riwayat Lab Submission</span>
+            <Badge variant="mono" className="tabular-nums">
+              {initialSubmissions.length}
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {initialSubmissions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
               Belum ada riwayat evaluasi kode untuk modul ini.
-            </p>
+            </div>
           ) : (
             <div className="space-y-3">
               {initialSubmissions.map((sub) => (
-                <div key={sub.id} className="space-y-2 rounded-lg border p-3">
+                <div
+                  key={sub.id}
+                  className="space-y-2 rounded-lg border border-border bg-muted/20 p-3"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2">
-                      <Badge
-                        variant={sub.passed ? "default" : "secondary"}
-                      >
+                      <Badge variant={sub.passed ? "mastered" : "learning"}>
                         {sub.passed ? "Passed" : "Perlu Revisi"}
                       </Badge>
                       {sub.repo_commit_url ? (
@@ -387,7 +394,7 @@ export function CodeReviewPanel({
                           href={sub.repo_commit_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-mono text-primary hover:underline"
+                          className="font-mono text-foreground underline-offset-4 hover:underline"
                         >
                           Commit GitHub
                         </a>
@@ -397,7 +404,7 @@ export function CodeReviewPanel({
                         </span>
                       )}
                     </div>
-                    <span className="text-muted-foreground">
+                    <span className="font-mono tabular-nums text-muted-foreground">
                       {new Date(sub.submitted_at).toLocaleString("id-ID", {
                         day: "2-digit",
                         month: "short",

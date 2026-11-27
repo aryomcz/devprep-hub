@@ -275,7 +275,7 @@ export function ModuleTabs({
             {savedNoteId ? (
               <Link href={`/notes/${savedNoteId}`}>
                 <Button variant="outline" size="sm" className="gap-1.5">
-                  <Check className="size-4 text-emerald-600" />
+                  <Check className="size-4 text-[var(--status-mastered)]" />
                   <span>Tersimpan • Buka Catatan</span>
                 </Button>
               </Link>
@@ -306,9 +306,9 @@ export function ModuleTabs({
 
             <p className="text-sm leading-relaxed">{conceptBrief.summary}</p>
 
-            <div className="rounded-lg border bg-muted/40 p-3.5">
-              <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold">
-                <Lightbulb className="size-3.5 text-amber-500" />
+            <div className="rounded-lg border border-border bg-muted/40 p-3.5">
+              <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                <Lightbulb className="size-3.5 text-[var(--status-learning)]" />
                 <span>Analogi Praktis</span>
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
@@ -331,8 +331,11 @@ export function ModuleTabs({
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">
-              Referensi Terkurasi ({resources.length})
+            <CardTitle className="flex items-center justify-between gap-2 text-base">
+              <span>Referensi Terkurasi</span>
+              <Badge variant="mono" className="tabular-nums">
+                {resources.length}
+              </Badge>
             </CardTitle>
             <CardDescription>
               Hasil Hybrid Sourcing dari sumber publik resmi (cache 7 hari di
@@ -341,29 +344,29 @@ export function ModuleTabs({
           </CardHeader>
           <CardContent>
             {resources.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
                 Belum ada referensi eksternal ter-cache untuk skill ini.
-              </p>
+              </div>
             ) : (
-              <div className="divide-y rounded-lg border">
+              <div className="divide-y divide-border rounded-lg border border-border">
                 {resources.map((res) => (
                   <div
                     key={res.url}
-                    className="flex flex-col gap-1.5 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-1.5 p-3 transition-colors hover:bg-muted/25 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline" className="text-[10px] uppercase">
+                        <Badge variant="mono" className="text-[10px] uppercase">
                           {res.source}
                         </Badge>
                         <a
                           href={res.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-sm font-medium hover:underline"
+                          className="inline-flex items-center gap-1 text-sm font-medium text-foreground underline-offset-4 hover:underline"
                         >
                           <span className="truncate">{res.title}</span>
-                          <ExternalLink className="size-3 shrink-0" />
+                          <ExternalLink className="size-3 shrink-0 text-muted-foreground" />
                         </a>
                       </div>
                       {res.summary ? (

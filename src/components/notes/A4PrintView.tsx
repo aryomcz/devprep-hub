@@ -287,7 +287,7 @@ export function A4PrintView({
         </div>
       </div>
 
-      <article className="a4-print-sheet mx-auto max-w-[210mm] rounded-xl border bg-white p-6 text-neutral-900 shadow-sm print:p-0">
+      <article className="a4-print-sheet [color-scheme:light] mx-auto max-w-[210mm] rounded-xl border border-neutral-300 bg-white p-6 text-neutral-900 shadow-sm print:p-0">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-300 pb-2">
           <div>
             <h1 className="text-lg font-bold tracking-tight text-neutral-950">

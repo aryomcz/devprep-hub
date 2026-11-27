@@ -85,13 +85,13 @@ async function TracksContent({
       </div>
 
       {tracks.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Rocket className="size-4" />
+        <Card className="border-dashed bg-card/60">
+          <CardHeader className="py-8 text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-base">
+              <Rocket className="size-4 text-muted-foreground" />
               <span>Belum Ada Learning Track</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="mx-auto max-w-md">
               Klik <strong>Buat Capstone Track</strong> untuk merancang
               arsitektur One-App Capstone beserta kerangka modul bertahap.
             </CardDescription>
@@ -110,13 +110,16 @@ async function TracksContent({
                 : 0;
 
             return (
-              <Card key={track.id} className="flex flex-col justify-between">
+              <Card
+                key={track.id}
+                className="flex flex-col justify-between hover:border-foreground/20"
+              >
                 <CardHeader className="space-y-2 pb-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 space-y-1">
                       <Link
                         href={`/tracks/${track.id}`}
-                        className="hover:underline"
+                        className="underline-offset-4 hover:underline"
                       >
                         <CardTitle className="truncate text-base">
                           {track.capstone_title}
@@ -126,32 +129,34 @@ async function TracksContent({
                         {track.capstone_description}
                       </CardDescription>
                     </div>
-                    <Badge variant="outline" className="shrink-0">
+                    <Badge variant="mono" className="shrink-0">
                       {track.primary_stack}
                     </Badge>
                   </div>
 
-                  <div className="space-y-1 pt-1">
+                  <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 font-mono tabular-nums">
                         <Layers className="size-3.5" />
                         <span>
                           {completedCount}/{mods.length} modul selesai
                         </span>
                       </span>
-                      <span>{progressPct}%</span>
+                      <span className="font-mono font-medium tabular-nums text-foreground">
+                        {progressPct}%
+                      </span>
                     </div>
                     <Progress value={progressPct} className="w-full" />
                   </div>
                 </CardHeader>
 
-                <CardContent className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+                <CardContent className="flex flex-wrap items-center justify-between gap-2 border-t border-border/80 pt-3">
                   <TrackStatusBar trackId={track.id} status={track.status} />
 
-                  <Link href={`/tracks/${track.id}`}>
+                  <Link href={`/tracks/${track.id}`} className="group/open">
                     <Button variant="outline" size="xs" className="gap-1">
                       <span>Buka Peta Modul</span>
-                      <ArrowRight className="size-3.5" />
+                      <ArrowRight className="size-3.5 transition-transform duration-150 group-hover/open:translate-x-0.5" />
                     </Button>
                   </Link>
                 </CardContent>

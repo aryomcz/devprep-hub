@@ -74,6 +74,15 @@ const CONFIDENCE_LABELS: Record<ConfidenceLevel, string> = {
   ready: "Ready",
 };
 
+const CONFIDENCE_VARIANTS: Record<
+  ConfidenceLevel,
+  "gap" | "learning" | "mastered"
+> = {
+  confused: "gap",
+  partial: "learning",
+  ready: "mastered",
+};
+
 function formatTimer(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
@@ -177,20 +186,20 @@ export function InterviewTimer({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{skillName}</Badge>
-              <Badge variant="outline">
+              <Badge variant="mono">
                 {INTERVIEW_CARD_SOURCE_LABELS[card.source]}
               </Badge>
-              <span className="text-xs text-muted-foreground">
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">
                 Direview {card.review_count}x
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <div
-                className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-sm font-semibold ${
+                className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-sm font-semibold tabular-nums ${
                   remainingSeconds === 0
-                    ? "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                    : "bg-muted/50"
+                    ? "border-[color-mix(in_oklab,var(--status-learning)_45%,transparent)] bg-[color-mix(in_oklab,var(--status-learning)_12%,transparent)] text-[var(--status-learning)]"
+                    : "border-border bg-muted/50 text-foreground"
                 }`}
               >
                 <Clock className="size-3.5" />
@@ -248,13 +257,16 @@ export function InterviewTimer({
           ) : null}
 
           {submittedInfo ? (
-            <div className="space-y-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-xs">
-              <div className="flex flex-wrap items-center justify-between gap-2 font-semibold text-emerald-800 dark:text-emerald-200">
+            <div className="space-y-1.5 rounded-lg border border-[color-mix(in_oklab,var(--status-mastered)_40%,transparent)] bg-[color-mix(in_oklab,var(--status-mastered)_10%,transparent)] p-3 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 font-semibold text-[var(--status-mastered)]">
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 className="size-4" />
                   <span>Sesi wawancara tersimpan</span>
                 </span>
-                <Badge variant="default">
+                <Badge
+                  variant={submittedInfo.skillStatus}
+                  className="font-mono tabular-nums"
+                >
                   Mastery {skillName}: {submittedInfo.masteryScore}% (
                   {STATUS_LABELS[submittedInfo.skillStatus]})
                 </Badge>
@@ -312,7 +324,7 @@ export function InterviewTimer({
               <label htmlFor="interview-notes" className="font-medium">
                 Catatan Kerangka Jawaban
               </label>
-              <span className="text-muted-foreground">
+              <span className="font-mono tabular-nums text-muted-foreground">
                 Durasi tercatat: {elapsedSeconds} detik
               </span>
             </div>
@@ -327,7 +339,7 @@ export function InterviewTimer({
             />
           </div>
 
-          <div className="space-y-2 border-t pt-3">
+          <div className="space-y-2 border-t border-border/80 pt-3">
             <div className="text-xs font-medium text-muted-foreground">
               Penilaian Mandiri &amp; Jadwal Pengulangan Berkala:
             </div>
@@ -337,7 +349,7 @@ export function InterviewTimer({
                 variant="outline"
                 disabled={isPending}
                 onClick={() => handleEvaluate("confused")}
-                className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                className="border-[color-mix(in_oklab,var(--status-gap)_40%,transparent)] text-[var(--status-gap)] hover:bg-[color-mix(in_oklab,var(--status-gap)_10%,transparent)]"
               >
                 Confused (+2 Hari)
               </Button>
@@ -346,14 +358,16 @@ export function InterviewTimer({
                 variant="outline"
                 disabled={isPending}
                 onClick={() => handleEvaluate("partial")}
-                className="border-amber-500/40 text-amber-700 hover:bg-amber-500/10 dark:text-amber-300"
+                className="border-[color-mix(in_oklab,var(--status-learning)_40%,transparent)] text-[var(--status-learning)] hover:bg-[color-mix(in_oklab,var(--status-learning)_10%,transparent)]"
               >
                 Partial (+5 Hari)
               </Button>
               <Button
                 type="button"
+                variant="outline"
                 disabled={isPending}
                 onClick={() => handleEvaluate("ready")}
+                className="border-[color-mix(in_oklab,var(--status-mastered)_40%,transparent)] bg-[color-mix(in_oklab,var(--status-mastered)_10%,transparent)] text-[var(--status-mastered)] hover:bg-[color-mix(in_oklab,var(--status-mastered)_18%,transparent)]"
               >
                 Ready (+14 Hari)
               </Button>
@@ -364,32 +378,37 @@ export function InterviewTimer({
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">
-            Riwayat Sesi Interview ({cardAttempts.length})
+          <CardTitle className="flex items-center justify-between gap-2 text-base">
+            <span>Riwayat Sesi Interview</span>
+            <Badge variant="mono" className="tabular-nums">
+              {cardAttempts.length}
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {cardAttempts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
               Belum ada riwayat sesi latihan untuk kartu ini.
-            </p>
+            </div>
           ) : (
             <div className="space-y-2.5">
               {cardAttempts.map((attempt) => (
                 <div
                   key={attempt.id}
-                  className="space-y-1 rounded-lg border p-3 text-xs"
+                  className="space-y-1.5 rounded-lg border border-border bg-muted/20 p-3 text-xs"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary">
+                      <Badge
+                        variant={CONFIDENCE_VARIANTS[attempt.confidence_level]}
+                      >
                         {CONFIDENCE_LABELS[attempt.confidence_level]}
                       </Badge>
-                      <span className="text-muted-foreground">
+                      <span className="font-mono tabular-nums text-muted-foreground">
                         Durasi: {attempt.duration_seconds} detik
                       </span>
                     </div>
-                    <span className="text-muted-foreground">
+                    <span className="font-mono tabular-nums text-muted-foreground">
                       {new Date(attempt.attempted_at).toLocaleString("id-ID", {
                         day: "2-digit",
                         month: "short",

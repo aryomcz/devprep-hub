@@ -68,10 +68,7 @@ function highlightSegment(text: string, keyPrefix: string): ReactNode {
           (part.startsWith("'") && part.endsWith("'"))
         ) {
           return (
-            <span
-              key={key}
-              className="text-emerald-700 dark:text-emerald-300"
-            >
+            <span key={key} className="text-[var(--status-mastered)]">
               {part}
             </span>
           );
@@ -79,7 +76,7 @@ function highlightSegment(text: string, keyPrefix: string): ReactNode {
 
         if (/^\d+(?:\.\d+)?$/.test(part)) {
           return (
-            <span key={key} className="text-amber-700 dark:text-amber-300">
+            <span key={key} className="text-[var(--status-learning)]">
               {part}
             </span>
           );
@@ -89,7 +86,7 @@ function highlightSegment(text: string, keyPrefix: string): ReactNode {
           return (
             <span
               key={key}
-              className="font-semibold text-blue-700 dark:text-blue-300"
+              className="font-semibold text-blue-600 dark:text-sky-300"
             >
               {part}
             </span>
@@ -200,9 +197,9 @@ export function InlineBlankDrillRunner({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-xs text-muted-foreground">
+        <div className="font-mono text-xs tabular-nums text-muted-foreground">
           {drills.length} latihan • {totalBlanks} slot kode (tekan{" "}
-          <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[10px]">
+          <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px] text-foreground">
             Tab
           </kbd>{" "}
           untuk berpindah antar slot)
@@ -239,13 +236,13 @@ export function InlineBlankDrillRunner({
       ) : null}
 
       {summary ? (
-        <div className="space-y-1.5 rounded-lg border bg-muted/40 p-3 text-xs">
+        <div className="space-y-1.5 rounded-lg border border-border bg-muted/40 p-3 text-xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-sm font-semibold">
+            <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
               Skor Drill: {summary.score}% ({summary.correctCount}/
               {summary.totalCount} benar)
             </span>
-            <Badge variant="default">
+            <Badge variant={summary.status} className="font-mono tabular-nums">
               Mastery {skillName}: {summary.masteryScore}% (
               {STATUS_LABELS[summary.status]})
             </Badge>
@@ -272,14 +269,14 @@ export function InlineBlankDrillRunner({
                 <CardTitle className="text-sm">
                   {drillIdx + 1}. {drill.title}
                 </CardTitle>
-                <Badge variant="outline" className="font-mono text-[10px]">
+                <Badge variant="mono" className="text-[10px]">
                   {drill.language}
                 </Badge>
               </div>
             </CardHeader>
 
             <CardContent className="space-y-3 pt-4">
-              <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-3.5 font-mono text-xs leading-7">
+              <pre className="overflow-x-auto rounded-lg border border-border bg-muted/60 p-3.5 font-mono text-xs leading-7 text-foreground dark:bg-muted/35">
                 <code>
                   {tokens.map((token, tokenIdx) => {
                     const blank = blankMap.get(token);
@@ -300,10 +297,10 @@ export function InlineBlankDrillRunner({
 
                     const borderClass =
                       isCorrect === true
-                        ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        ? "border-[var(--status-mastered)] bg-[color-mix(in_oklab,var(--status-mastered)_12%,transparent)] text-[var(--status-mastered)]"
                         : isCorrect === false
                           ? "border-destructive bg-destructive/10 text-destructive"
-                          : "border-primary/50 bg-background text-foreground focus:border-primary";
+                          : "border-border bg-card text-foreground shadow-2xs focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/60 dark:bg-background/95";
 
                     return (
                       <span
@@ -325,10 +322,10 @@ export function InlineBlankDrillRunner({
                               [fieldKey]: event.target.value,
                             }))
                           }
-                          className={`rounded border px-1.5 py-0.5 font-mono text-xs outline-none transition-colors ${borderClass}`}
+                          className={`rounded border px-1.5 py-0.5 font-mono text-xs outline-none transition-[border-color,background-color,box-shadow] duration-150 ${borderClass}`}
                         />
                         {isCorrect === true ? (
-                          <CheckCircle2 className="inline size-3.5 text-emerald-600" />
+                          <CheckCircle2 className="inline size-3.5 text-[var(--status-mastered)]" />
                         ) : isCorrect === false ? (
                           <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-destructive">
                             <XCircle className="inline size-3" />

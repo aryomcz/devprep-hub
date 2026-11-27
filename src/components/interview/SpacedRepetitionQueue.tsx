@@ -308,7 +308,10 @@ export function SpacedRepetitionQueue({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-base">
                 <span>Jatuh Tempo Hari Ini</span>
-                <Badge variant={dueCards.length > 0 ? "default" : "secondary"}>
+                <Badge
+                  variant={dueCards.length > 0 ? "learning" : "mono"}
+                  className="font-mono tabular-nums"
+                >
                   {dueCards.length} Kartu
                 </Badge>
               </CardTitle>
@@ -318,9 +321,9 @@ export function SpacedRepetitionQueue({
             </CardHeader>
             <CardContent>
               {dueCards.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
+                <div className="rounded-lg border border-dashed border-border bg-muted/25 p-4 text-center text-xs text-muted-foreground">
                   Tidak ada Kartu Interview yang jatuh tempo sekarang.
-                </p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {dueCards.map((card) => {
@@ -333,26 +336,26 @@ export function SpacedRepetitionQueue({
                         key={card.id}
                         type="button"
                         onClick={() => setSelectedCardId(card.id)}
-                        className={`w-full rounded-lg border p-3 text-left transition-colors ${
+                        className={`w-full rounded-lg border p-3 text-left outline-none transition-[border-color,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-ring/60 ${
                           isSelected
-                            ? "border-primary bg-primary/5"
-                            : "hover:bg-muted/50"
+                            ? "border-foreground/35 bg-muted/55"
+                            : "border-border hover:border-foreground/20 hover:bg-muted/35"
                         }`}
                       >
-                        <div className="mb-1 flex flex-wrap items-center justify-between gap-1.5">
+                        <div className="mb-1.5 flex flex-wrap items-center justify-between gap-1.5">
                           <div className="flex items-center gap-1.5">
                             <Badge variant="secondary" className="text-[10px]">
                               {skillName}
                             </Badge>
-                            <Badge variant="outline" className="text-[10px]">
+                            <Badge variant="mono" className="text-[10px]">
                               {INTERVIEW_CARD_SOURCE_LABELS[card.source]}
                             </Badge>
                           </div>
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
                             {card.review_count}x
                           </span>
                         </div>
-                        <p className="line-clamp-2 text-xs font-medium">
+                        <p className="line-clamp-2 text-xs font-medium text-foreground">
                           {card.question_prompt}
                         </p>
                       </button>
@@ -370,14 +373,16 @@ export function SpacedRepetitionQueue({
                   <CalendarClock className="size-4 text-muted-foreground" />
                   <span>Terjadwal Mendatang</span>
                 </span>
-                <Badge variant="outline">{upcomingCards.length}</Badge>
+                <Badge variant="mono" className="tabular-nums">
+                  {upcomingCards.length}
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
               {upcomingCards.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
+                <div className="rounded-lg border border-dashed border-border bg-muted/25 p-4 text-center text-xs text-muted-foreground">
                   Belum ada kartu terjadwal di masa depan.
-                </p>
+                </div>
               ) : (
                 <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
                   {upcomingCards.map((card) => {
@@ -390,15 +395,17 @@ export function SpacedRepetitionQueue({
                         key={card.id}
                         type="button"
                         onClick={() => setSelectedCardId(card.id)}
-                        className={`w-full rounded-lg border p-2.5 text-left transition-colors ${
+                        className={`w-full rounded-lg border p-2.5 text-left outline-none transition-[border-color,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-ring/60 ${
                           isSelected
-                            ? "border-primary bg-primary/5"
-                            : "hover:bg-muted/50"
+                            ? "border-foreground/35 bg-muted/55"
+                            : "border-border hover:border-foreground/20 hover:bg-muted/35"
                         }`}
                       >
                         <div className="mb-1 flex items-center justify-between gap-2 text-[11px]">
-                          <span className="font-medium">{skillName}</span>
-                          <span className="text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            {skillName}
+                          </span>
+                          <span className="font-mono tabular-nums text-muted-foreground">
                             {new Date(card.next_review_at).toLocaleDateString(
                               "id-ID",
                               { day: "2-digit", month: "short" },
