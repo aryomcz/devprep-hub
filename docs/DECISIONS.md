@@ -84,3 +84,27 @@ Dokumen ini mencatat keputusan teknis dan arsitektur penting agar setiap sesi pe
 - **Konteks:** Aplikasi membutuhkan mode terang dan gelap nyaman tanpa menambah ketergantungan eksternal (`next-themes`) ataupun *flash of unstyled theme* (FOUC) saat SSR/hydration.
 - **Keputusan:** Mendefinisikan palet token semantik lengkap Light (`:root`) dan Dark (`.dark`) via `@custom-variant dark` Tailwind v4 di `src/app/globals.css`, skrip inisialisasi sinkron pre-hydration + `useSyncExternalStore` pada `ThemeProvider`, serta override `@media print` yang selalu memaksa skema terang untuk cetak A4.
 - **Konsekuensi:** Seluruh komponen UI wajib memakai token semantik (`bg-card`, `text-foreground`, `--status-*`) alih-alih warna statis, dan mode cetak A4 tetap netral kertas putih meskipun mode gelap aktif.
+
+### ADR-013: Deep Study Guide (v2), Contextual Module Tutor & Kuis Pilihan Ganda (MCQ A/B/C/D)
+- **Tanggal & Status:** 2026-11-27 | `Accepted`
+- **Konteks:** Materi `concept_brief` v1 terlalu ringkas dan kuis hanya tersedia dalam format isian rumpang (*cloze/inline-blank*).
+- **Keputusan:** Memperluas skema `concept_brief` secara *backward-compatible* (5 blok pedagogis Bahasa Indonesia + tombol regenerasi terkonfirmasi untuk modul lama), menambah endpoint tutor kontekstual *stateless* (`POST /api/tracks/[id]/modules/[moduleId]/tutor`, maks. 500 karakter), serta menambah enum `quiz_source_type` (`'module_mcq'`, `'note_mcq'`) dan kolom nullable `mcq_questions JSONB` (`0006`) dengan cache permanen.
+- **Konsekuensi:** Komponen `DeepConceptBriefView`, `ModuleTutorDrawer`, dan `McqQuizRunner` dipisah dari komponen besar v1.0; hasil MCQ otomatis masuk ke `submitQuizAttemptAction` & `MasteryScore`.
+
+### ADR-014: Job Radar Publik (Arbeitnow & Remotive) + Upgrade Daily Digest 2-Kategori
+- **Tanggal & Status:** 2026-11-27 | `Accepted`
+- **Konteks:** Pengguna membutuhkan sumber lowongan magang terbuka otomatis serta berita dunia IT yang aktif, terpisah antara *skill gap* vs tren umum, dan mudah dipahami dalam Bahasa Indonesia.
+- **Keputusan:** Menambah tabel cache `job_radar_cache` (RLS *authenticated*, cache 12 jam, tanpa `SUPABASE_SECRET_KEY`) dari Arbeitnow & Remotive (`Promise.allSettled`, `AbortSignal.timeout(4000)`) + `src/lib/job-matcher.ts` deterministik tanpa LLM + pintasan loker Indonesia; memperluas `daily_digests` (`category: 'skill_gap' | 'trending_it'`, `ai_summary JSONB`) + `profiles.last_digest_refresh` (`0007`) untuk *refresh* manual (cooldown 6 jam) dan ringkasan AI *on-demand* permanen.
+- **Konsekuensi:** `SUPABASE_SECRET_KEY` tetap terisolasi eksklusif di `/api/cron/daily-digest` (`ADR-005`), dan halaman baca `/internships` serta `/digest` tidak pernah memanggil LLM saat render.
+
+### ADR-015: Voice Interview Multimodal via Gemini Audio Tanpa Storage (*Stateless In-Memory*)
+- **Tanggal & Status:** 2026-11-27 | `Accepted`
+- **Konteks:** Latihan wawancara teknis membutuhkan umpan balik isi kerangka 3 poin sekaligus gaya penyampaian lisan (*clarity*, *structure*, *pacing*, *filler words*) tanpa membebani kuota Supabase Storage.
+- **Keputusan:** Memperluas `generateStructuredJson` (`src/lib/gemini.ts`) agar menerima `inlineData?: { mimeType, dataBase64 }`, memproses audio *in-memory* melalui `POST /api/interview/review` (`maxDuration = 30`, validasi MIME `webm/mp4/ogg/wav`, maks. **3.5 MB**, durasi >3 detik) lalu langsung membuang buffer audio; menyimpan hasil opsional `transcript` & `ai_feedback JSONB` pada `interview_attempts` via pembaruan RPC atomik `submit_interview_attempt` (`0008`).
+- **Konsekuensi:** Nol biaya/kuota penyimpanan audio, perekaman browser memakai bitrate hemat (`32–48 kbps`) dengan batas 120 detik, serta tersedia fallback mulus ke mode teks saat izin mikrofon ditolak atau Gemini `429`.
+
+### ADR-016: Route Loading Skeletons, Command Palette Ringan (`Ctrl+K`) & Capstone CV/STAR Summarizer
+- **Tanggal & Status:** 2026-11-27 | `Accepted`
+- **Konteks:** Navigasi harian lintas fitur perlu terasa instan tanpa library berat dan proyek *One-App Capstone* yang selesai perlu dikonversi langsung menjadi aset lamaran magang.
+- **Keputusan:** Menambah `loading.tsx` berbasis semantic tokens Light/Dark, membangun `CommandPalette` memakai primitif `Dialog` `shadcn/ui` + endpoint baca ringan `GET /api/search/command` (lazy-load saat dibuka, nol LLM), serta menambah `learning_tracks.portfolio_summary JSONB` (`0009`) yang di-generate sekali via `POST /api/tracks/[id]/portfolio-summary` (aktif setelah ≥1 modul `completed`).
+- **Konsekuensi:** Tidak menambah ketergantungan UI baru maupun query berat pada `DashboardLayout`, dan hasil Bullet CV ATS + Cerita STAR di-cache permanen di PostgreSQL.

@@ -15,7 +15,7 @@ DevPrep Hub menyatukan pemetaan profil GitHub dan analisis lowongan magang (`Tar
 ### Target & Batasan Utama
 * **Target Pengguna & Isolasi Data:** Penggunaan pribadi melalui *Single-User Gate* (`ALLOWED_USER_EMAIL` + menonaktifkan *public signup* di Supabase Auth), dengan skema database siap diperluas ke *multi-user* melalui kolom `user_id` dan *Row Level Security* (RLS) penuh di seluruh tabel.
 * **Arsitektur & Biaya:** Next.js Full-Stack (App Router) + Supabase (PostgreSQL & Auth) + Vercel Hobby, dirancang berjalan **100% pada Free Tier** melalui eksekusi AI 2-tahap (*blueprint* lalu *on-demand*), *caching* persisten di PostgreSQL (`JSONB`), dan Public APIs resmi tanpa biaya.
-* **Sumber Kebenaran Istilah:** Seluruh penamaan tabel, tipe TypeScript, enum, API, dan UI wajib merujuk pada `docs/GLOSSARY.md`, sementara keputusan teknis merujuk pada `docs/DECISIONS.md` (`ADR-001`–`ADR-010`).
+* **Sumber Kebenaran Istilah:** Seluruh penamaan tabel, tipe TypeScript, enum, API, dan UI wajib merujuk pada `docs/GLOSSARY.md`, sementara keputusan teknis merujuk pada `docs/DECISIONS.md` (`ADR-001`–`ADR-016`).
 
 ---
 
@@ -111,13 +111,13 @@ DevPrep Hub menyatukan pemetaan profil GitHub dan analisis lowongan magang (`Tar
 
 ### Tech Stack Terkunci
 * **Framework:** Next.js `16.4.6` (App Router, TypeScript, menggunakan `src/proxy.ts` sesuai konvensi Next.js 16 — bukan konvensi middleware lama).
-* **Styling & UI:** Tailwind CSS v4 + `shadcn/ui` (Radix UI primitives, `class-variance-authority`, `clsx`, `tailwind-merge` via `src/lib/utils.ts`, konfigurasi `components.json`), ikon Lucide, editor ringan tanpa Monaco/CodeMirror (`ADR-009`), serta *syntax highlighter* ringan untuk blok kode *read-only* `Warm-up Drill`.
-* **Database, Auth & Types:** Supabase (PostgreSQL + Supabase Auth + RLS penuh di seluruh tabel), akses melalui `@supabase/supabase-js` + `@supabase/ssr`, migrasi SQL terversi di `supabase/migrations/*.sql`, *generated TypeScript types* di `src/types/database.ts`, serta PostgreSQL RPC untuk transaksi atomik lintas tabel (`ADR-005`).
-* **Validasi & AI Engine:** Zod untuk validasi payload input, output JSON Gemini, dan seluruh kolom `JSONB`; Google Gemini API Free Tier dengan *Structured JSON Output*.
+* **Styling & UI:** Tailwind CSS v4 + `shadcn/ui` (`@base-ui/react`, `class-variance-authority`, `clsx`, `tailwind-merge` via `src/lib/utils.ts`, konfigurasi `components.json`), token semantik Dual-Theme Light/Dark (`ADR-012`), ikon Lucide, editor ringan tanpa Monaco/CodeMirror (`ADR-009`), serta *syntax highlighter* ringan untuk blok kode *read-only* `Warm-up Drill`.
+* **Database, Auth & Types:** Supabase (PostgreSQL + Supabase Auth + RLS penuh di seluruh tabel), akses melalui `@supabase/supabase-js` + `@supabase/ssr`, migrasi SQL terversi di `supabase/migrations/*.sql` (v1.0 `0001`–`0005`, ekstensi inkremental v1.1 `0006`–`0009`), *generated TypeScript types* di `src/types/database.ts`, serta PostgreSQL RPC untuk transaksi atomik lintas tabel (`ADR-005`).
+* **Validasi & AI Engine:** Zod untuk validasi payload input, output JSON Gemini, dan seluruh kolom `JSONB`; Google Gemini API Free Tier dengan *Structured JSON Output* (termasuk input `inlineData` audio untuk `v1.1`).
 * **Deployment & Cron:** Vercel Hobby Plan (`maxDuration = 30` pada Route Handler AI) + Vercel Cron Jobs.
 
 ### Rujukan Keputusan Arsitektur
-Detail konteks dan konsekuensi seluruh keputusan teknis tercatat pada `docs/DECISIONS.md` (`ADR-001` s.d. `ADR-010`).
+Detail konteks dan konsekuensi seluruh keputusan teknis tercatat pada `docs/DECISIONS.md` (`ADR-001` s.d. `ADR-016`).
 
 ### Keamanan, Batasan Free Tier & Environment Variables
 * Seluruh secret hanya diakses di sisi server (Route Handlers, Server Actions, `src/services/`) dan wajib terdaftar kosong di `.env.example`:
@@ -337,3 +337,70 @@ Untuk menjaga fokus dan keandalan 100% Free Tier, hal-hal berikut secara eksplis
 * Pencarian berbasis *vector embeddings* (`pgvector`) atau *background job queue* berbayar (seperti Inngest/Trigger.dev/Redis terpisah).
 * *Web scraping* HTML di luar Public API resmi yang telah ditetapkan.
 * Sistem *multi-tenant* dengan alur *public registration*, manajemen tim, atau pembayaran (*billing*).
+
+---
+
+## 12. Spesifikasi Ekstensi v1.1 (*Upgrade Extensions*)
+
+### 12.1 Problem Statement & Solution v1.1
+Ekstensi **v1.1** (`ADR-013`–`ADR-016`) menutup empat kesenjangan terhadap alur belajar dan persiapan kerja pengguna tanpa merombak fondasi `v1.0`:
+1. **Materi Modul Terlalu Ringkas & Kuis Terbatas ke Isian Rumpang:** Diperbaiki lewat **Deep Study Guide (`concept_brief` v2)** berbahasa Indonesia 5 blok terstruktur, **Module Tutor** kontekstual *on-demand*, dan kuis kartu **Pilihan Ganda (MCQ A/B/C/D)** beserta pembahasan.
+2. **Kesulitan Menemukan Lowongan Terbuka & Berita IT Kurang Terarah:** Diperbaiki lewat **Job Radar** (Arbeitnow + Remotive + pencocok *skill* deterministik + pintasan loker Indonesia) serta **Upgrade `/digest`** 2 kategori (`skill_gap` vs `trending_it`), tombol refresh ber-cooldown, dan ringkasan AI Bahasa Indonesia.
+3. **Evaluasi Interview Belum Menilai Penyampaian Lisan:** Diperbaiki lewat **Voice Interview (Gemini Audio Multimodal)** *stateless in-memory* tanpa Supabase Storage untuk menilai isi kerangka 3 poin sekaligus *clarity*, *structure*, *pacing*, dan *filler words*.
+4. **Hambatan Kecepatan Harian & Konversi Capstone ke CV:** Diperbaiki lewat **Route Loading Skeletons** (`loading.tsx`), **Command Palette (`Ctrl+K`)** ringan, dan **Portfolio Summary** (Bullet CV ATS + Cerita STAR 90 detik) dari *One-App Capstone*.
+
+### 12.2 User Stories v1.1
+20. Sebagai pengguna, saya ingin materi `concept_brief` tiap modul memuat 5 blok runtut berbahasa Indonesia (alasan dunia nyata, analogi & alur kerja, *before vs after* + bedah baris, *trade-off*, dan *common pitfalls*), agar konsep teknis langsung terpahami sebelum mulai coding.
+21. Sebagai pengguna dengan modul lama yang sudah `ready`, saya ingin tombol konfirmasi **"Perbarui ke Materi Mendalam"** agar dapat meng-upgrade materi ke format v2 tanpa pemborosan kuota otomatis.
+22. Sebagai pengguna yang masih bingung di tengah membaca modul, saya ingin membuka drawer **Module Tutor** dan menekan **"Jelaskan dengan Analogi Lebih Sederhana"** atau menanyakan pertanyaan singkat (maks. 500 karakter).
+23. Sebagai pengguna, saya ingin mengerjakan kuis kartu **Pilihan Ganda (A/B/C/D)** dengan pintasan keyboard (`1–4` / `A–D` & `Enter`) beserta kotak pembahasan alasan opsi benar dan kekeliruan opsi pilihan saya, baik di `/quiz` maupun Tab 2 modul, agar skor otomatis masuk ke `MasteryScore`.
+24. Sebagai pengguna yang mencari lowongan aktif, saya ingin melihat **Radar Lowongan Terbuka** dari Arbeitnow & Remotive lengkap dengan badge persentase kecocokan *skill*, tombol 1-klik **"Analisis ke Target Magang"**, serta pintasan pencarian loker Indonesia (LinkedIn, Glints, Kalibrr).
+25. Sebagai pengguna di `/digest`, saya ingin melihat pemisahan artikel **Untuk Skill Gap-mu** dan **Trending IT & Istilah Baru**, bisa memicu **"Tarik Berita Sekarang"** (cooldown 6 jam), serta membuat ringkasan Bahasa Indonesia 3 poin secara *on-demand* dan tersimpan permanen.
+26. Sebagai pengguna di `/interview`, saya ingin merekam jawaban lisan hingga 2 menit via mikrofon dan mendapat evaluasi Gemini Audio berisi transkrip, skor kerangka 3 poin, skor kejelasan & struktur alur, daftar *filler words*, serta rekomendasi `confidence_level`—dengan fallback mulus ke mode teks jika mikrofon ditolak atau terjadi `429`.
+27. Sebagai pengguna, saya ingin menekan `Ctrl+K` / `Cmd+K` untuk melompat cepat ke halaman, `Skill`, `Note`, `TargetInternship`, atau istilah `JargonGlossary`, melihat *skeleton* saat navigasi rute berat, dan men-generate **Bullet CV ATS + Cerita STAR** dari proyek Capstone yang sudah memiliki minimal 1 modul selesai.
+
+### 12.3 Functional Requirements v1.1
+* **FR-G (Deep Study Guide, Module Tutor & MCQ A/B/C/D):**
+  - `conceptBriefSchema` diperluas secara *backward-compatible* dengan field opsional/terstruktur untuk 5 blok Bahasa Indonesia; regenerasi modul lama wajib memakai konfirmasi pengguna (`forceRefresh`).
+  - `POST /api/tracks/[id]/modules/[moduleId]/tutor` melayani tanya-jawab *stateless* berbasis konteks `concept_brief` modul (maks. 500 karakter pertanyaan).
+  - `quiz_source_type` ditambah nilai `'module_mcq'` dan `'note_mcq'`; `track_modules` dan `notes` ditambah `mcq_questions JSONB` untuk menyimpan 5 `McqQuestion` permanen dan dinilai via `submitQuizAttemptAction`.
+* **FR-H (Job Radar & Upgrade Daily Digest):**
+  - `GET /api/internships/radar` menarik lowongan intern/junior dari Arbeitnow & Remotive paralel (`Promise.allSettled`, `AbortSignal.timeout(4000)`), men-cache 12 jam di `job_radar_cache` (RLS terautentikasi), dan memadankan `Skill` pengguna via `src/lib/job-matcher.ts` tanpa LLM.
+  - `daily-digest.ts` & `/api/cron/daily-digest` mendukung `category` (`'skill_gap' | 'trending_it'`); `POST /api/digest/refresh` memungkinkan tarik manual ber-cooldown 6 jam via `profiles.last_digest_refresh` (sesi user RLS, tanpa `SUPABASE_SECRET_KEY`); `POST /api/digest/[id]/summarize` men-cache permanen ringkasan 3 poin ke `daily_digests.ai_summary`.
+* **FR-I (Voice Interview Multimodal Tanpa Storage):**
+  - `generateStructuredJson` mendukung `inlineData?: { mimeType, dataBase64 }`.
+  - `POST /api/interview/review` memvalidasi `FormData` audio (`audio/webm`, `audio/mp4`, `audio/ogg`, `audio/wav`, maks. `3.5 MB`, durasi >3 detik), mengubah ke Base64 *in-memory*, memanggil Gemini Audio via `interview-reviewer.ts`, dan membuang buffer audio.
+  - `submit_interview_attempt` RPC & `submitInterviewAttemptAction` diperluas dengan parameter opsional `transcript` dan `ai_feedback JSONB`.
+* **FR-J (UX Speed, Command Palette & Capstone CV/STAR):**
+  - Penambahan `src/components/ui/skeleton.tsx` dan `loading.tsx` di `(dashboard)`, `/dashboard`, `/tracks/[id]/modules/[moduleId]`, dan `/internships/[id]`.
+  - `GET /api/search/command` + `CommandPalette.tsx` (`Dialog` + `Ctrl+K` / `Cmd+K`) melakukan pencarian lokal cepat tanpa LLM dan tanpa membebani `DashboardLayout`.
+  - `POST /api/tracks/[id]/portfolio-summary` menghasilkan 3–4 bullet CV ATS (ID & EN) + draf cerita STAR 90 detik (aktif setelah ≥1 modul `completed`) dan men-cache permanen ke `learning_tracks.portfolio_summary`.
+
+### 12.4 Ekstensi Skema Database (`0006`–`0009`) & Endpoint API Baru
+| Migrasi | Perubahan Skema & RLS |
+| :--- | :--- |
+| **`0006_deep_modules_and_mcq.sql`** | Tambah `'module_mcq'` & `'note_mcq'` ke enum `quiz_source_type`; tambah `mcq_questions JSONB` nullable pada `track_modules` dan `notes`. |
+| **`0007_job_radar_and_digest_upgrade.sql`** | Tambah tabel `job_radar_cache` (`UNIQUE (source, external_id)`, RLS authenticated), `daily_digests.category` (`'skill_gap' \| 'trending_it'`) + `ai_summary JSONB`, serta `profiles.last_digest_refresh TIMESTAMPTZ`. |
+| **`0008_interview_voice_review.sql`** | Tambah `transcript TEXT` dan `ai_feedback JSONB` nullable pada `interview_attempts`; perbarui RPC `submit_interview_attempt` agar menerima argumen opsional keduanya. |
+| **`0009_track_portfolio_summary.sql`** | Tambah `portfolio_summary JSONB` nullable pada `learning_tracks`. |
+
+**Route Handlers v1.1 (`maxDuration = 30` pada route AI/eksternal):**
+* `POST /api/tracks/[id]/modules/[moduleId]/tutor` — Tanya-jawab kontekstual *stateless* berbasis `concept_brief`.
+* `POST /api/quiz/mcq/generate` — Generate & cache 5 `McqQuestion` permanen ke `track_modules` atau `notes`.
+* `GET /api/internships/radar` — Feed lowongan terbuka Arbeitnow/Remotive ter-cache 12 jam (`?refresh=true` ber-cooldown).
+* `POST /api/digest/refresh` — Tarik manual 2 kategori berita IT oleh user RLS (cooldown 6 jam).
+* `POST /api/digest/[id]/summarize` — Ringkasan AI Bahasa Indonesia 3 poin, cache permanen ke `daily_digests.ai_summary`.
+* `POST /api/interview/review` — Evaluasi multimodal Gemini Audio *in-memory* (tanpa simpan file audio).
+* `GET /api/search/command` — Pencarian cepat entitas milik pengguna untuk `CommandPalette` (`Ctrl+K`).
+* `POST /api/tracks/[id]/portfolio-summary` — Generate & cache permanen Bullet CV ATS + Cerita STAR Capstone.
+
+### 12.5 Testing Seams v1.1 & Out of Scope v1.1
+* **Testing Seams:**
+  - *Pure Domain Seam:* `src/lib/job-matcher.ts` (kecocokan lowongan memakai `skill-normalizer.ts` tanpa I/O) dan validasi `inlineData` pada `src/lib/gemini.ts`.
+  - *Schema Contract Seams:* `conceptBriefSchema` (kompatibilitas v1 & v2), `mcqQuestionSchema`, `digestAiSummarySchema`, `interviewAiFeedbackSchema`, dan `portfolioSummarySchema`.
+  - *Service Seams (Injected Adapters):* `module-tutor.ts`, `mcq-generator.ts`, `job-radar.ts`, `daily-digest.ts` (2 kategori), `digest-summarizer.ts`, `interview-reviewer.ts` (validasi MIME/ukuran/durasi + hasil terstruktur), dan `portfolio-summarizer.ts`.
+* **Out of Scope v1.1:**
+  - Penyimpanan file audio *Voice Interview* ke Supabase Storage atau object storage eksternal.
+  - Riwayat percakapan multi-turn persisten untuk Module Tutor di database.
+  - *Web scraping* HTML portal loker Indonesia (diganti tautan pencarian terstruktur yang aman).
+  - Ketergantungan UI berat baru (`cmdk` / *voice waveform library*) bila primitif `Dialog` & Web `MediaRecorder` standar sudah mencukupi.

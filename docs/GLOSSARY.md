@@ -118,6 +118,38 @@ _Avoid_: Todo List, Task Queue, Recommendation Feed
 
 ---
 
+### 6. Ekstensi v1.1 (Deep Modules, MCQ, Job Radar, Voice & Portfolio)
+
+**Deep Study Guide**:
+Format materi `concept_brief` v2 yang terdiri atas 5 blok pedagogis berbahasa Indonesia (*Masalah Dunia Nyata*, *Analogi & Alur Kerja*, *Before vs After*, *Trade-off*, dan *Common Pitfalls*) serta tetap *backward-compatible* dengan format ringkas v1.
+_Avoid_: Lecture Notes, E-Book Content
+
+**Module Tutor**:
+Asisten tanya-jawab *stateless* berbasis konteks `concept_brief` satu `Track Module` (maks. 500 karakter per pertanyaan, tanpa penyimpanan riwayat percakapan di database).
+_Avoid_: Chatbot, Persistent AI Chat
+
+**MCQ Question**:
+Soal kartu pilihan ganda 4 opsi (`A`, `B`, `C`, `D`) lengkap dengan kunci jawaban dan pembahasan mengapa opsi benar tepat serta mengapa distraktor keliru, di-cache permanen pada `Track Module` atau `Note`.
+_Avoid_: Multiple Choice Test, Trivia Card
+
+**Job Radar Item**:
+Entri lowongan magang atau *entry-level* terbuka yang ditarik dari Public API resmi (Arbeitnow/Remotive) dan di-cache 12 jam di `job_radar_cache` beserta estimasi skor kecocokan `Skill` secara deterministik.
+_Avoid_: Scraped Job, Aggregated Vacancy
+
+**Digest Summary**:
+Ringkasan Bahasa Indonesia 3 poin (*Inti Berita*, *Istilah IT Baru*, *Kenapa Penting*) yang di-generate *on-demand* dari satu entri `Daily Digest` dan di-cache permanen pada `daily_digests.ai_summary`.
+_Avoid_: TLDR Block, Auto Digest Brief
+
+**Interview AI Feedback**:
+Hasil evaluasi multimodal Gemini Audio atas satu `Interview Attempt` yang memuat transkrip, skor kerangka 3 poin (`content_review`), skor gaya penyampaian & *filler words* (`delivery_review`), serta rekomendasi `suggested_confidence`.
+_Avoid_: Voice Grade, Audio Score
+
+**Portfolio Summary**:
+Ringkasan aset lamaran hasil *One-App Capstone* berisi 3–4 *bullet* CV ramah ATS (ID & EN) serta draf cerita STAR 90 detik, di-cache permanen pada `learning_tracks.portfolio_summary`.
+_Avoid_: Resume Draft, Project Bio
+
+---
+
 ## Matriks Penamaan Lintas Lapisan (DB / TypeScript / API / UI)
 
 | Istilah Domain | Tabel DB (`snake_case`) | Tipe TypeScript (`PascalCase`) | Resource / Path API | Label UI Kanonik |
@@ -141,6 +173,12 @@ _Avoid_: Todo List, Task Queue, Recommendation Feed
 | Interview Card | `interview_cards` | `InterviewCard` | *(Server Actions `/interview`)* | Kartu Interview |
 | Interview Attempt | `interview_attempts` | `InterviewAttempt` | *(Server Actions `/interview`)* | Riwayat Sesi Interview |
 | Today's Focus | *(dihitung di server)* | `TodaysFocus` | *(computed di `/dashboard`)* | Today's Focus |
+| MCQ Question | `track_modules.mcq_questions`, `notes.mcq_questions` | `McqQuestion` | `/api/quiz/mcq/generate` | Kuis Pilihan Ganda (A/B/C/D) |
+| Module Tutor | *(stateless, tidak disimpan di DB)* | `ModuleTutorReply` | `/api/tracks/[id]/modules/[moduleId]/tutor` | Tutor Modul |
+| Job Radar Item | `job_radar_cache` | `JobRadarItem` | `/api/internships/radar` | Radar Lowongan Terbuka |
+| Digest Summary | `daily_digests.ai_summary` | `DigestAiSummary` | `/api/digest/[id]/summarize` | Ringkasan Berita AI |
+| Interview AI Feedback | `interview_attempts.ai_feedback` (+ `transcript`) | `InterviewAiFeedback` | `/api/interview/review` | Evaluasi AI Suara |
+| Portfolio Summary | `learning_tracks.portfolio_summary` | `PortfolioSummary` | `/api/tracks/[id]/portfolio-summary` | Bullet CV & Cerita STAR |
 
 ---
 
@@ -161,7 +199,9 @@ Seluruh nilai enum di PostgreSQL, skema validasi, tipe TypeScript, dan payload A
 | `module_status` | `'locked' \| 'in_progress' \| 'completed'` | `track_modules.status` |
 | `module_content_status` | `'pending' \| 'ready' \| 'failed'` | `track_modules.content_status` |
 | `digest_source` | `'devto' \| 'hackernews'` | `daily_digests.source` |
-| `quiz_source_type` | `'note_cloze' \| 'module_drill'` | `quiz_attempts.source_type` |
+| `digest_category` *(check constraint)* | `'skill_gap' \| 'trending_it'` | `daily_digests.category` |
+| `job_radar_source` *(check constraint)* | `'arbeitnow' \| 'remotive'` | `job_radar_cache.source` |
+| `quiz_source_type` | `'note_cloze' \| 'module_drill' \| 'module_mcq' \| 'note_mcq'` | `quiz_attempts.source_type` |
 | `interview_card_source` | `'lab_review' \| 'skill_gap' \| 'manual'` | `interview_cards.source` |
 | `confidence_level` | `'confused' \| 'partial' \| 'ready'` | `interview_cards.confidence_level`, `interview_attempts.confidence_level` |
 
@@ -187,6 +227,7 @@ track_modules (N) ── (1) skills
 track_modules (1) ── (N) lab_submissions
 lab_submissions (1) ── (N) interview_cards        [nullable]
 interview_cards (1) ── (N) interview_attempts
+job_radar_cache                                    [shared public feed cache, TTL 12h]
 ```
 
 ### Domain Invariants (Aturan yang Tidak Boleh Dilanggar)
@@ -202,3 +243,6 @@ interview_cards (1) ── (N) interview_attempts
 6. **Idempotensi `Daily Digest`:** Kombinasi `(user_id, source, external_id)` pada `daily_digests` wajib unik sehingga eksekusi ulang harian tidak pernah menggandakan artikel yang sama.
 7. **Pemisahan State & Riwayat Interview:** Satu `InterviewCard` memegang tepat satu jadwal *Spaced Repetition* aktif (`next_review_at`), sedangkan setiap penyelesaian latihan dicatat sebagai baris baru *append-only* di `interview_attempts` sambil memperbarui `next_review_at`, `confidence_level`, dan `review_count` pada kartu induknya.
 8. **Isolasi Kepemilikan Data:** Seluruh entitas milik pengguna terikat pada `user_id` (atau mewarisi kepemilikan melalui parent-nya) dan dilindungi oleh *Row Level Security* (RLS) penuh.
+9. **Backward-Compatibility Konten Modul & MCQ:** Skema `concept_brief` v2 menjaga field v1 (`summary`, `analogy`, `key_points`) tetap valid, dan `mcq_questions` bersifat nullable sehingga modul maupun catatan lama tetap berfungsi penuh.
+10. **Pemrosesan Audio Tanpa Storage (*Stateless*):** Audio *Voice Interview* dibatasi maks. `3.5 MB` (MIME `audio/webm | audio/mp4 | audio/ogg | audio/wav`, durasi >3 detik), dikonversi ke Base64 *in-memory* lalu dibuang setelah respons AI diterima; hanya `transcript` dan `ai_feedback` tervalidasi Zod yang disimpan ke `interview_attempts`.
+11. **Isolasi Kredensial & Cooldown Refresh:** `SUPABASE_SECRET_KEY` hanya digunakan pada `/api/cron/daily-digest`; cache `job_radar_cache` (TTL 12 jam) dan refresh manual `/api/digest/refresh` (cooldown 6 jam via `profiles.last_digest_refresh`) dieksekusi menggunakan sesi terautentikasi via RLS.
