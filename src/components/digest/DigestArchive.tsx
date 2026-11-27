@@ -168,10 +168,10 @@ export function DigestArchive({
       ) : null}
 
       {filtered.length === 0 ? (
-        <Card>
-          <CardHeader>
+        <Card className="border-dashed bg-card/60">
+          <CardHeader className="py-8 text-center">
             <CardTitle className="text-base">Belum Ada Daily Digest</CardTitle>
-            <CardDescription>
+            <CardDescription className="mx-auto max-w-md">
               Artikel teknis harian otomatis ditarik oleh Vercel Cron (Dev.to
               &amp; Hacker News) untuk skill berstatus Gap atau Learning.
             </CardDescription>
@@ -186,17 +186,24 @@ export function DigestArchive({
             const savedNoteId = savedNotes[item.id];
 
             return (
-              <Card key={item.id} className={item.is_read ? "opacity-75" : ""}>
+              <Card
+                key={item.id}
+                className={
+                  item.is_read
+                    ? "opacity-75 hover:border-foreground/20"
+                    : "hover:border-foreground/20"
+                }
+              >
                 <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 space-y-1.5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="text-[10px] uppercase">
+                      <Badge variant="mono" className="text-[10px] uppercase">
                         {item.source === "devto" ? "Dev.to" : "Hacker News"}
                       </Badge>
                       {skillName ? (
                         <Badge variant="secondary">{skillName}</Badge>
                       ) : null}
-                      <span className="text-xs text-muted-foreground">
+                      <span className="font-mono text-xs tabular-nums text-muted-foreground">
                         {item.digest_date}
                       </span>
                       {item.is_read ? (
@@ -208,10 +215,10 @@ export function DigestArchive({
                       href={toSafeExternalHref(item.url)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground underline-offset-4 hover:underline"
                     >
                       <span>{item.title}</span>
-                      <ExternalLink className="size-3.5 shrink-0" />
+                      <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
                     </a>
                   </div>
 
@@ -233,7 +240,7 @@ export function DigestArchive({
                     {savedNoteId ? (
                       <Link href={`/notes/${savedNoteId}`}>
                         <Button variant="outline" size="xs" className="gap-1">
-                          <Check className="size-3.5 text-emerald-600" />
+                          <Check className="size-3.5 text-[var(--status-mastered)]" />
                           <span>Buka Catatan</span>
                         </Button>
                       </Link>

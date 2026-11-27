@@ -24,9 +24,9 @@ export type DashboardQuizPoint = {
 };
 
 const BAR_COLOR: Record<SkillStatus, string> = {
-  gap: "bg-destructive/75",
-  learning: "bg-amber-500",
-  mastered: "bg-emerald-600",
+  gap: "bg-[var(--status-gap)]",
+  learning: "bg-[var(--status-learning)]",
+  mastered: "bg-[var(--status-mastered)]",
 };
 
 export function MasteryChart({
@@ -54,33 +54,44 @@ export function MasteryChart({
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <Badge variant="default">{statusCounts.mastered} Mastered</Badge>
-            <Badge variant="secondary">{statusCounts.learning} Learning</Badge>
-            <Badge variant="outline">{statusCounts.gap} Gap</Badge>
+            <Badge variant="mastered" className="font-mono tabular-nums">
+              {statusCounts.mastered} Mastered
+            </Badge>
+            <Badge variant="learning" className="font-mono tabular-nums">
+              {statusCounts.learning} Learning
+            </Badge>
+            <Badge variant="gap" className="font-mono tabular-nums">
+              {statusCounts.gap} Gap
+            </Badge>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-2.5">
+        <CardContent className="space-y-3">
           {skills.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
               Belum ada skill tercatat. Sync GitHub atau analisis lowongan dari{" "}
-              <Link href="/skills" className="underline">
+              <Link
+                href="/skills"
+                className="font-medium text-foreground underline underline-offset-4"
+              >
                 Master Skills
               </Link>
               .
-            </p>
+            </div>
           ) : (
             skills.map((skill) => (
-              <div key={skill.id} className="space-y-1">
+              <div key={skill.id} className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium">{skill.name}</span>
-                  <span className="font-mono text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    {skill.name}
+                  </span>
+                  <span className="font-mono font-medium tabular-nums text-muted-foreground">
                     {skill.masteryScore}%
                   </span>
                 </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted ring-1 ring-inset ring-border/60">
                   <div
-                    className={`h-full rounded-full transition-all ${BAR_COLOR[skill.status]}`}
+                    className={`h-full rounded-full transition-[width,background-color] duration-200 ease-[var(--ease-craft)] ${BAR_COLOR[skill.status]}`}
                     style={{ width: `${skill.masteryScore}%` }}
                   />
                 </div>
@@ -101,21 +112,24 @@ export function MasteryChart({
             </CardDescription>
           </div>
 
-          <Badge variant="outline" className="gap-1">
-            <Flame className="size-3.5 text-orange-500" />
+          <Badge variant="learning" className="gap-1 font-mono tabular-nums">
+            <Flame className="size-3.5 text-[var(--status-learning)]" />
             <span>{learningStreak} hari</span>
           </Badge>
         </CardHeader>
 
         <CardContent>
           {quizPoints.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
               Belum ada riwayat kuis. Latih active recall di{" "}
-              <Link href="/quiz" className="underline">
+              <Link
+                href="/quiz"
+                className="font-medium text-foreground underline underline-offset-4"
+              >
                 Cloze Quiz
               </Link>
               .
-            </p>
+            </div>
           ) : (
             <div className="space-y-2">
               <svg
@@ -146,13 +160,13 @@ export function MasteryChart({
                         width={barW}
                         height={barH}
                         rx="3"
-                        className="fill-primary/80"
+                        className="fill-foreground/80"
                       />
                       <text
                         x={x + barW / 2}
                         y={Math.max(10, y - 3)}
                         textAnchor="middle"
-                        className="fill-muted-foreground text-[8px] font-mono"
+                        className="fill-muted-foreground font-mono text-[8px] tabular-nums"
                       >
                         {point.score}
                       </text>
@@ -160,7 +174,7 @@ export function MasteryChart({
                   );
                 })}
               </svg>
-              <div className="flex flex-wrap justify-between gap-1 text-[10px] text-muted-foreground">
+              <div className="flex flex-wrap justify-between gap-1 font-mono text-[10px] tabular-nums text-muted-foreground">
                 {quizPoints.map((p) => (
                   <span key={p.id}>{p.label}</span>
                 ))}

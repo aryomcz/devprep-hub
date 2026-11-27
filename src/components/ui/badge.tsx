@@ -18,6 +18,12 @@ const badgeVariants = cva(
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
+        gap: "border-[color-mix(in_oklab,var(--status-gap)_28%,transparent)] bg-[color-mix(in_oklab,var(--status-gap)_12%,transparent)] text-[var(--status-gap)]",
+        learning:
+          "border-[color-mix(in_oklab,var(--status-learning)_28%,transparent)] bg-[color-mix(in_oklab,var(--status-learning)_12%,transparent)] text-[var(--status-learning)]",
+        mastered:
+          "border-[color-mix(in_oklab,var(--status-mastered)_28%,transparent)] bg-[color-mix(in_oklab,var(--status-mastered)_12%,transparent)] text-[var(--status-mastered)]",
+        mono: "border-border bg-muted/60 font-mono text-[11px] text-muted-foreground",
       },
     },
     defaultVariants: {

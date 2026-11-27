@@ -147,8 +147,14 @@ async function InternshipDetailLoader({
               </CardDescription>
             </div>
             <Badge
-              variant={readinessScore >= 70 ? "default" : "secondary"}
-              className="text-sm"
+              variant={
+                readinessScore >= 80
+                  ? "mastered"
+                  : readinessScore >= 30
+                    ? "learning"
+                    : "gap"
+              }
+              className="px-2.5 py-1 font-mono text-xs tabular-nums"
             >
               Readiness Meter: {readinessScore}%
             </Badge>
@@ -160,44 +166,43 @@ async function InternshipDetailLoader({
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">
-              Must-Have Skills ({mustHaveSkills.length})
+            <CardTitle className="flex items-center justify-between gap-2 text-base">
+              <span>Must-Have Skills</span>
+              <Badge variant="mono" className="tabular-nums">
+                {mustHaveSkills.length}
+              </Badge>
             </CardTitle>
             <CardDescription>
-              Bobot 2x pada kalkulasi Readiness Meter.
+              Bobot <span className="font-mono">2x</span> pada kalkulasi
+              Readiness Meter.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {mustHaveSkills.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
                 Tidak ada skill must-have terpetakan.
-              </p>
+              </div>
             ) : (
-              <div className="divide-y rounded-lg border">
+              <div className="divide-y divide-border rounded-lg border border-border">
                 {mustHaveSkills.map((skill) => (
                   <div
                     key={skill.id}
-                    className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-muted/25"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{skill.name}</span>
-                      <Badge variant="outline" className="text-[10px]">
+                      <span className="font-medium text-foreground">
+                        {skill.name}
+                      </span>
+                      <Badge variant="mono" className="text-[10px]">
                         {skill.category}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          skill.status === "gap"
-                            ? "destructive"
-                            : skill.status === "mastered"
-                              ? "default"
-                              : "secondary"
-                        }
-                      >
+                    <div className="flex items-center gap-2.5">
+                      <Badge variant={skill.status}>
                         {SKILL_STATUS_LABELS[skill.status]}
                       </Badge>
-                      <span className="w-10 text-right font-mono text-xs">
+                      <Progress value={skill.mastery_score} className="w-16" />
+                      <span className="w-9 text-right font-mono text-xs tabular-nums text-muted-foreground">
                         {skill.mastery_score}%
                       </span>
                     </div>
@@ -210,44 +215,43 @@ async function InternshipDetailLoader({
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">
-              Nice-to-Have Skills ({niceToHaveSkills.length})
+            <CardTitle className="flex items-center justify-between gap-2 text-base">
+              <span>Nice-to-Have Skills</span>
+              <Badge variant="mono" className="tabular-nums">
+                {niceToHaveSkills.length}
+              </Badge>
             </CardTitle>
             <CardDescription>
-              Bobot 1x pada kalkulasi Readiness Meter.
+              Bobot <span className="font-mono">1x</span> pada kalkulasi
+              Readiness Meter.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {niceToHaveSkills.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
                 Tidak ada skill nice-to-have terpetakan.
-              </p>
+              </div>
             ) : (
-              <div className="divide-y rounded-lg border">
+              <div className="divide-y divide-border rounded-lg border border-border">
                 {niceToHaveSkills.map((skill) => (
                   <div
                     key={skill.id}
-                    className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-muted/25"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{skill.name}</span>
-                      <Badge variant="outline" className="text-[10px]">
+                      <span className="font-medium text-foreground">
+                        {skill.name}
+                      </span>
+                      <Badge variant="mono" className="text-[10px]">
                         {skill.category}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          skill.status === "gap"
-                            ? "destructive"
-                            : skill.status === "mastered"
-                              ? "default"
-                              : "secondary"
-                        }
-                      >
+                    <div className="flex items-center gap-2.5">
+                      <Badge variant={skill.status}>
                         {SKILL_STATUS_LABELS[skill.status]}
                       </Badge>
-                      <span className="w-10 text-right font-mono text-xs">
+                      <Progress value={skill.mastery_score} className="w-16" />
+                      <span className="w-9 text-right font-mono text-xs tabular-nums text-muted-foreground">
                         {skill.mastery_score}%
                       </span>
                     </div>

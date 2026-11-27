@@ -53,39 +53,55 @@ export function ReadinessOverview({
           </Link>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2.5">
           {internships.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
               Belum ada Target Magang. Tambahkan lowongan di{" "}
-              <Link href="/internships" className="underline">
+              <Link
+                href="/internships"
+                className="font-medium text-foreground underline underline-offset-4"
+              >
                 Target Magang
               </Link>
               .
-            </p>
+            </div>
           ) : (
-            internships.map((item) => (
-              <Link
-                key={item.id}
-                href={`/internships/${item.id}`}
-                className="block space-y-1.5 rounded-lg border p-3 transition-colors hover:bg-muted/40"
-              >
-                <div className="flex items-center justify-between gap-2 text-sm">
-                  <div className="min-w-0">
-                    <div className="truncate font-medium">{item.title}</div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Building2 className="size-3" />
-                      <span>{item.companyName || "Perusahaan Umum"}</span>
+            internships.map((item) => {
+              const readinessVariant =
+                item.readinessScore >= 80
+                  ? "mastered"
+                  : item.readinessScore >= 30
+                    ? "learning"
+                    : "gap";
+              return (
+                <Link
+                  key={item.id}
+                  href={`/internships/${item.id}`}
+                  className="group block space-y-2 rounded-lg border border-border bg-background/40 p-3 transition-[border-color,background-color] duration-150 hover:border-foreground/25 hover:bg-muted/35"
+                >
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <div className="min-w-0">
+                      <div className="truncate font-medium text-foreground">
+                        {item.title}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Building2 className="size-3 shrink-0" />
+                        <span className="truncate">
+                          {item.companyName || "Perusahaan Umum"}
+                        </span>
+                      </div>
                     </div>
+                    <Badge
+                      variant={readinessVariant}
+                      className="font-mono tabular-nums"
+                    >
+                      {item.readinessScore}%
+                    </Badge>
                   </div>
-                  <Badge
-                    variant={item.readinessScore >= 70 ? "default" : "secondary"}
-                  >
-                    {item.readinessScore}%
-                  </Badge>
-                </div>
-                <Progress value={item.readinessScore} className="w-full" />
-              </Link>
-            ))
+                  <Progress value={item.readinessScore} className="w-full" />
+                </Link>
+              );
+            })
           )}
         </CardContent>
       </Card>
@@ -94,7 +110,7 @@ export function ReadinessOverview({
         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
           <div>
             <CardTitle className="flex items-center gap-1.5 text-base">
-              <Rocket className="size-4" />
+              <Rocket className="size-4 text-muted-foreground" />
               <span>Progres One-App Capstone</span>
             </CardTitle>
             <CardDescription>
@@ -109,15 +125,18 @@ export function ReadinessOverview({
           </Link>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2.5">
           {activeTracks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
               Belum ada Learning Track aktif. Buat blueprint di{" "}
-              <Link href="/tracks" className="underline">
+              <Link
+                href="/tracks"
+                className="font-medium text-foreground underline underline-offset-4"
+              >
                 Learning Tracks
               </Link>
               .
-            </p>
+            </div>
           ) : (
             activeTracks.map((track) => {
               const pct =
@@ -130,19 +149,26 @@ export function ReadinessOverview({
                 <Link
                   key={track.id}
                   href={`/tracks/${track.id}`}
-                  className="block space-y-1.5 rounded-lg border p-3 transition-colors hover:bg-muted/40"
+                  className="group block space-y-2 rounded-lg border border-border bg-background/40 p-3 transition-[border-color,background-color] duration-150 hover:border-foreground/25 hover:bg-muted/35"
                 >
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <div className="min-w-0">
-                      <div className="truncate font-medium">
+                      <div className="truncate font-medium text-foreground">
                         {track.capstoneTitle}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {track.primaryStack} • {track.completedModules}/
-                        {track.totalModules} modul selesai
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className="truncate font-mono text-[11px]">
+                          {track.primaryStack}
+                        </span>
+                        <span>•</span>
+                        <span className="font-mono tabular-nums">
+                          {track.completedModules}/{track.totalModules} modul
+                        </span>
                       </div>
                     </div>
-                    <Badge variant="outline">{pct}%</Badge>
+                    <Badge variant="mono" className="tabular-nums">
+                      {pct}%
+                    </Badge>
                   </div>
                   <Progress value={pct} className="w-full" />
                 </Link>

@@ -72,7 +72,9 @@ export function JargonList({
               kuis Cloze.
             </CardDescription>
           </div>
-          <Badge variant="secondary">{entries.length} Istilah</Badge>
+          <Badge variant="mono" className="tabular-nums">
+            {entries.length} Istilah
+          </Badge>
         </div>
       </CardHeader>
 
@@ -87,9 +89,9 @@ export function JargonList({
         ) : null}
 
         {entries.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-muted/25 p-5 text-center text-sm text-muted-foreground">
             Tidak ada jargon khusus yang diekstrak dari lowongan ini.
-          </p>
+          </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {entries.map((entry) => {
@@ -99,10 +101,12 @@ export function JargonList({
               return (
                 <div
                   key={entry.term}
-                  className="flex flex-col justify-between gap-3 rounded-lg border p-3.5"
+                  className="flex flex-col justify-between gap-3 rounded-lg border border-border bg-muted/20 p-3.5 transition-colors duration-150 hover:border-foreground/20"
                 >
                   <div className="space-y-1.5">
-                    <div className="font-semibold text-sm">{entry.term}</div>
+                    <div className="text-sm font-semibold text-foreground">
+                      {entry.term}
+                    </div>
                     <p className="text-xs leading-relaxed text-foreground/90">
                       {entry.definition}
                     </p>
@@ -111,7 +115,7 @@ export function JargonList({
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 border-t pt-2.5">
+                  <div className="flex items-center justify-between gap-2 border-t border-border/80 pt-2.5">
                     {savedNoteId ? (
                       <Link href={`/notes/${savedNoteId}`}>
                         <Button
@@ -120,7 +124,7 @@ export function JargonList({
                           size="xs"
                           className="gap-1.5"
                         >
-                          <Check className="size-3.5 text-emerald-600" />
+                          <Check className="size-3.5 text-[var(--status-mastered)]" />
                           <span>Tersimpan • Buka Catatan</span>
                         </Button>
                       </Link>

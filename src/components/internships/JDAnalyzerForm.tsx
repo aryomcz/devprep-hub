@@ -273,8 +273,8 @@ export function JDAnalyzerForm() {
                 <span
                   className={
                     isRawTooLong
-                      ? "font-semibold text-destructive"
-                      : "text-muted-foreground"
+                      ? "font-mono font-semibold tabular-nums text-destructive"
+                      : "font-mono tabular-nums text-muted-foreground"
                   }
                 >
                   {rawInput.length.toLocaleString("id-ID")} /{" "}

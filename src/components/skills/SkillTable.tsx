@@ -69,14 +69,12 @@ const STATUS_LABELS: Record<SkillStatus, string> = {
   mastered: "Mastered",
 };
 
-const STATUS_VARIANTS: Record<
-  SkillStatus,
-  "destructive" | "secondary" | "default"
-> = {
-  gap: "destructive",
-  learning: "secondary",
-  mastered: "default",
-};
+const STATUS_VARIANTS: Record<SkillStatus, "gap" | "learning" | "mastered"> =
+  {
+    gap: "gap",
+    learning: "learning",
+    mastered: "mastered",
+  };
 
 function formatSignal(value: number | null): string {
   return value === null ? "—" : `${value}%`;
@@ -262,12 +260,21 @@ export function SkillTable({
         <Card size="sm">
           <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-0.5">
-              <div className="text-sm font-medium">Sinkronisasi GitHub</div>
+              <div className="text-sm font-medium text-foreground">
+                Sinkronisasi GitHub
+              </div>
               <p className="text-xs text-muted-foreground">
-                Pindai maks. 20 repo publik non-fork terbaru (baseline 40%).
-                {formattedSyncTime
-                  ? ` Terakhir sync: ${formattedSyncTime}`
-                  : ""}
+                Pindai maks. 20 repo publik non-fork terbaru (baseline{" "}
+                <span className="font-mono tabular-nums">40%</span>).
+                {formattedSyncTime ? (
+                  <>
+                    {" "}
+                    Terakhir sync:{" "}
+                    <span className="font-mono tabular-nums">
+                      {formattedSyncTime}
+                    </span>
+                  </>
+                ) : null}
               </p>
               {syncMessage ? (
                 <p className="text-xs text-foreground">{syncMessage}</p>
@@ -498,19 +505,27 @@ export function SkillTable({
                       const isOverridden =
                         skill.mastery_score !== skill.computedScore;
                       return (
-                        <tr key={skill.id} className="hover:bg-muted/20">
+                        <tr
+                          key={skill.id}
+                          className="transition-colors hover:bg-muted/25"
+                        >
                           <td className="px-4 py-3">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-medium">{skill.name}</span>
-                              <Badge variant="outline" className="text-[11px]">
+                              <span className="font-medium text-foreground">
+                                {skill.name}
+                              </span>
+                              <Badge variant="mono" className="text-[11px]">
                                 {skill.slug}
                               </Badge>
-                              <Badge variant="ghost" className="text-[11px]">
+                              <Badge
+                                variant="ghost"
+                                className="font-mono text-[10px] text-muted-foreground"
+                              >
                                 {skill.source}
                               </Badge>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground">
+                          <td className="px-4 py-3 text-xs text-muted-foreground">
                             {CATEGORY_LABELS[skill.category]}
                           </td>
                           <td className="px-4 py-3">
@@ -519,14 +534,25 @@ export function SkillTable({
                             </Badge>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex min-w-44 items-center gap-2">
+                            <div className="flex min-w-52 items-center gap-2.5">
                               <Progress
                                 value={skill.mastery_score}
                                 className="w-24"
                               />
-                              <span className="w-10 text-xs font-medium tabular-nums">
+                              <span className="w-10 font-mono text-xs font-medium tabular-nums text-foreground">
                                 {skill.mastery_score}%
                               </span>
+                              <div className="hidden items-center gap-1 font-mono text-[10px] tabular-nums text-muted-foreground xl:flex">
+                                <span className="rounded border border-border bg-muted/40 px-1.5 py-0.5">
+                                  Q {formatSignal(skill.breakdown.quiz)}
+                                </span>
+                                <span className="rounded border border-border bg-muted/40 px-1.5 py-0.5">
+                                  L {formatSignal(skill.breakdown.lab)}
+                                </span>
+                                <span className="rounded border border-border bg-muted/40 px-1.5 py-0.5">
+                                  I {formatSignal(skill.breakdown.interview)}
+                                </span>
+                              </div>
                               <Tooltip>
                                 <TooltipTrigger
                                   render={

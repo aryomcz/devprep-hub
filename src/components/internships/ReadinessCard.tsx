@@ -178,30 +178,37 @@ export function ReadinessCard({
     (skill) => skill.masteryScore < 30,
   ).length;
 
+  const readinessVariant =
+    readinessScore >= 80
+      ? "mastered"
+      : readinessScore >= 30
+        ? "learning"
+        : "gap";
+
   return (
-    <Card className="flex flex-col justify-between">
-      <CardHeader className="space-y-2 pb-3">
+    <Card className="flex flex-col justify-between hover:border-foreground/20">
+      <CardHeader className="space-y-2.5 pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <Link
               href={`/internships/${internship.id}`}
-              className="hover:underline"
+              className="hover:underline underline-offset-4"
             >
               <CardTitle className="truncate text-base">
                 {internship.title}
               </CardTitle>
             </Link>
             <CardDescription className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
-              <Building2 className="size-3.5" />
+              <Building2 className="size-3.5 shrink-0" />
               <span>{internship.company_name || "Perusahaan Umum"}</span>
               {internship.industry ? (
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="mono" className="text-[10px]">
                   {internship.industry}
                 </Badge>
               ) : null}
             </CardDescription>
           </div>
-          <Badge variant={readinessScore >= 70 ? "default" : "secondary"}>
+          <Badge variant={readinessVariant} className="font-mono tabular-nums">
             {readinessScore}% Siap
           </Badge>
         </div>
@@ -211,23 +218,30 @@ export function ReadinessCard({
 
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-1.5 text-xs">
-          <Badge variant="secondary">{mustHaveCount} Must-Have</Badge>
-          <Badge variant="outline">{niceToHaveCount} Nice-to-Have</Badge>
-          <Badge variant={gapCount > 0 ? "destructive" : "outline"}>
+          <Badge variant="secondary" className="font-mono tabular-nums">
+            {mustHaveCount} Must-Have
+          </Badge>
+          <Badge variant="outline" className="font-mono tabular-nums">
+            {niceToHaveCount} Nice-to-Have
+          </Badge>
+          <Badge
+            variant={gapCount > 0 ? "gap" : "outline"}
+            className="font-mono tabular-nums"
+          >
             {gapCount} Gap
           </Badge>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/80 pt-3">
           <StatusControls
             internshipId={internship.id}
             status={internship.status}
           />
 
-          <Link href={`/internships/${internship.id}`}>
+          <Link href={`/internships/${internship.id}`} className="group/detail">
             <Button variant="outline" size="xs" className="gap-1">
               <span>Detail</span>
-              <ArrowRight className="size-3.5" />
+              <ArrowRight className="size-3.5 transition-transform duration-150 group-hover/detail:translate-x-0.5" />
             </Button>
           </Link>
         </div>
@@ -292,14 +306,14 @@ export function InternshipsDirectory({
       </div>
 
       {filtered.length === 0 ? (
-        <Card>
-          <CardHeader>
+        <Card className="border-dashed bg-card/60">
+          <CardHeader className="py-8 text-center">
             <CardTitle className="text-base">
               {internships.length === 0
                 ? "Belum Ada Target Magang"
                 : "Tidak Ada Lowongan untuk Filter Ini"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="mx-auto max-w-md">
               {internships.length === 0
                 ? "Klik Analisis Lowongan Baru untuk memetakan skill gap, glosarium istilah, dan Readiness Meter Anda."
                 : "Ubah filter status lamaran untuk melihat target lainnya."}
