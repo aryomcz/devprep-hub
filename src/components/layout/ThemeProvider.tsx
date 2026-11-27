@@ -8,7 +8,6 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export type ThemePreference = "light" | "dark" | "system";
@@ -152,35 +151,43 @@ export function ThemeToggle({
   variant = "segmented",
   className,
 }: {
-  variant?: "segmented" | "icon";
+  variant?: "segmented" | "icon" | "switch";
   className?: string;
 }) {
   const { theme, resolvedTheme, setTheme } = useTheme();
 
-  if (variant === "icon") {
-    const nextTheme: ThemePreference =
-      resolvedTheme === "dark" ? "light" : "dark";
+  if (variant === "switch" || variant === "icon") {
+    const isDark = resolvedTheme === "dark";
+    const nextTheme: ThemePreference = isDark ? "light" : "dark";
     return (
-      <Button
+      <button
         type="button"
-        variant="outline"
-        size="icon-sm"
+        role="switch"
+        aria-checked={isDark}
         onClick={() => setTheme(nextTheme)}
-        aria-label={
-          resolvedTheme === "dark"
-            ? "Beralih ke Light Mode"
-            : "Beralih ke Dark Mode"
-        }
-        title={
-          resolvedTheme === "dark"
-            ? "Beralih ke Light Mode"
-            : "Beralih ke Dark Mode"
-        }
-        className={cn("relative", className)}
+        aria-label={isDark ? "Beralih ke Light Mode" : "Beralih ke Dark Mode"}
+        title={isDark ? "Beralih ke Light Mode" : "Beralih ke Dark Mode"}
+        className={cn(
+          "group relative inline-flex h-8 w-14 shrink-0 cursor-pointer items-center rounded-full border border-border bg-secondary/90 p-0.5 shadow-inner transition-colors duration-200 ease-[var(--ease-craft)] outline-none focus-visible:ring-2 focus-visible:ring-ring/60 dark:bg-slate-700/60",
+          className,
+        )}
       >
-        <Sun className="size-3.5 scale-100 rotate-0 transition-transform duration-150 dark:scale-0 dark:-rotate-90" />
-        <Moon className="absolute size-3.5 scale-0 rotate-90 transition-transform duration-150 dark:scale-100 dark:rotate-0" />
-      </Button>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none flex w-full items-center justify-between px-1.5 text-muted-foreground/55 dark:text-slate-300/60"
+        >
+          <Sun className="size-3.5" />
+          <Moon className="size-3.5" />
+        </span>
+
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0.5 left-0.5 flex size-6.5 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-black/8 transition-transform duration-200 ease-[var(--ease-craft)] translate-x-0 dark:translate-x-6 dark:bg-slate-100 dark:ring-white/20"
+        >
+          <Sun className="size-3.5 text-amber-500 transition-opacity duration-150 dark:hidden" />
+          <Moon className="hidden size-3.5 text-indigo-600 transition-opacity duration-150 dark:block" />
+        </span>
+      </button>
     );
   }
 

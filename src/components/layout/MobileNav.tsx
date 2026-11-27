@@ -93,7 +93,7 @@ export function MobileNav({ userEmail }: { userEmail: string }) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <ThemeToggle variant="icon" className="rounded-full" />
+        <ThemeToggle variant="switch" />
 
         <div className="hidden items-center gap-2 rounded-full border border-border bg-background/80 py-1 pr-2.5 pl-1 sm:flex">
           <span className="flex size-5 items-center justify-center rounded-full bg-foreground font-mono text-[10px] font-semibold text-background">
