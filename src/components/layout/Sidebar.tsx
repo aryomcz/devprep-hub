@@ -7,17 +7,13 @@ import {
   Compass,
   HelpCircle,
   LayoutDashboard,
-  LogOut,
   MessageSquare,
   Newspaper,
   Wrench,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 export const NAV_ITEMS = [
@@ -39,7 +35,7 @@ export function SidebarNavLinks({
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-1" aria-label="Main navigation">
+    <nav className="flex flex-col gap-0.5" aria-label="Main navigation">
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const active =
@@ -50,14 +46,27 @@ export function SidebarNavLinks({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               active
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground shadow-2xs ring-1 ring-sidebar-border dark:shadow-none"
+                : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
             )}
           >
-            <Icon className="size-4 shrink-0" />
-            <span>{item.label}</span>
+            {active ? (
+              <span
+                aria-hidden="true"
+                className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-foreground"
+              />
+            ) : null}
+            <Icon
+              className={cn(
+                "size-4 shrink-0 transition-transform duration-150",
+                active
+                  ? "text-foreground"
+                  : "text-muted-foreground group-hover:text-foreground",
+              )}
+            />
+            <span className="truncate">{item.label}</span>
           </Link>
         );
       })}
@@ -65,43 +74,23 @@ export function SidebarNavLinks({
   );
 }
 
-export function Sidebar({ userEmail }: { userEmail: string }) {
-  const router = useRouter();
-  const [signingOut, setSigningOut] = useState(false);
-
-  async function handleSignOut() {
-    setSigningOut(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.replace("/login");
-    router.refresh();
-  }
-
+export function Sidebar() {
   return (
-    <aside className="hidden md:flex md:w-64 md:shrink-0 md:flex-col md:border-r md:bg-card">
-      <div className="flex h-14 items-center gap-2 px-4">
-        <CheckCircle2 className="size-5 text-primary" />
-        <span className="font-semibold tracking-tight">DevPrep Hub</span>
+    <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-60 md:shrink-0 md:flex-col md:border-r md:border-sidebar-border md:bg-sidebar">
+      <div className="flex h-14 items-center justify-between gap-2 px-4">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="size-4 text-foreground" />
+          <span className="text-sm font-semibold tracking-[-0.02em]">
+            DevPrep Hub
+          </span>
+        </div>
+        <span className="rounded border border-sidebar-border bg-background/70 px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground">
+          v1.0
+        </span>
       </div>
-      <Separator />
-      <div className="flex-1 overflow-y-auto p-3">
+      <Separator className="bg-sidebar-border" />
+      <div className="flex-1 overflow-y-auto px-2.5 py-3">
         <SidebarNavLinks />
-      </div>
-      <Separator />
-      <div className="flex flex-col gap-2 p-3">
-        <p className="truncate px-1 text-xs text-muted-foreground" title={userEmail}>
-          {userEmail}
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className="justify-start gap-2"
-        >
-          <LogOut className="size-4" />
-          <span>{signingOut ? "Signing out..." : "Sign out"}</span>
-        </Button>
       </div>
     </aside>
   );

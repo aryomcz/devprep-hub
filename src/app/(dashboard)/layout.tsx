@@ -24,11 +24,13 @@ async function AuthenticatedShell({ children }: { children: ReactNode }) {
     .upsert({ id: user.id }, { onConflict: "id", ignoreDuplicates: true });
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <Sidebar userEmail={user.email} />
+    <div className="flex min-h-screen flex-col bg-background md:flex-row">
+      <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <MobileNav userEmail={user.email} />
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 px-4 py-5 md:px-7 md:py-7 lg:px-9 lg:py-8">
+          <div className="mx-auto w-full max-w-7xl">{children}</div>
+        </main>
       </div>
     </div>
   );
